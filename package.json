@@ -1,0 +1,25 @@
+{
+  "name": "chevbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chevtek/chevbot.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/chevtek/chevbot/issues"
+  },
+  "homepage": "https://github.com/chevtek/chevbot#readme",
+  "devDependencies": {
+    "ts-node-dev": "^1.0.0-pre.44"
+  },
+  "dependencies": {
+    "typescript": "^3.9.3"
+  }
+}
