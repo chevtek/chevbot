@@ -24,10 +24,13 @@
   },
   "dependencies": {
     "@discordjs/opus": "^0.3.2",
+    "canvas": "^2.6.1",
     "config": "^3.3.1",
     "discord.js": "^12.2.0",
+    "ffmpeg-static": "^4.2.6",
     "moment": "^2.26.0",
     "typescript": "^3.9.3",
-    "yargs": "^15.3.1"
+    "yargs": "^15.4.1",
+    "ytdl-core": "^3.2.0"
   }
 }

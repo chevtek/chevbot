@@ -1,8 +1,9 @@
 {
+  "commandPrefix": "cb.",
+  "botTag": "Chevbot#2278",
   "discord": {
     "clientId": "716029527972773998",
     "secret": "1zKzFOuDT-b1aNkD2ohRt3HEi2p0Jcwa",
-    "token": "NzE2MDI5NTI3OTcyNzczOTk4.XtF4mg.dtlMqchKomEmnaCUtDyfwHv868c",
-    "chevbotTag": "Chevbot#2278"
+    "token": "NzE2MDI5NTI3OTcyNzczOTk4.XtF4mg.dtlMqchKomEmnaCUtDyfwHv868c"
   }
 }
