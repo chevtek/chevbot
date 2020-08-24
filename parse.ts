@@ -21,7 +21,6 @@ yargs
   .wrap(null);
 
 export default (cmdInput, context) => {
-  context.yargs = yargs;
   yargs.parse(cmdInput, context || false, (err, { help }, output) => {
     if (output) {
       if (help) {
@@ -45,10 +44,10 @@ export default (cmdInput, context) => {
         });
 
 
-        context.message.channel.send(helpEmbed);
+        context.discord.message.channel.send(helpEmbed);
         return;
       }
-      context.message.channel.send(output);
+      context.discord.message.channel.send(output);
     }
   });
 }

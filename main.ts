@@ -14,7 +14,7 @@ discordClient.on("message", message => {
   // Check if message is a bot command.
   if (content.substr(0, commandPrefix.length) !== commandPrefix) return;
 
-  parse(content.substr(commandPrefix.length), { message });
+  parse(content.substr(commandPrefix.length), { discord: { message } });
 });
 
 const port = process.env.PORT || 3000;
