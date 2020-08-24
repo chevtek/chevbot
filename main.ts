@@ -1,6 +1,7 @@
 import config from "config";
 import parse from "./parse";
 import discordClient from "./discord-client";
+import http from "http";
 
 const { commandPrefix, botTag } = config as any;
 
@@ -15,3 +16,9 @@ discordClient.on("message", message => {
 
   parse(content.substr(commandPrefix.length), { message });
 });
+
+http.createServer((req, res) => {
+  res.writeHead(200);
+  res.write("Chevbot is running.");
+  res.end();
+}).listen(process.env.PORT || 3000);
