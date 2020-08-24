@@ -6,16 +6,6 @@
   "configurations": [
     {
       "type": "node",
-      "request": "attach",
-      "name": "Attach",
-      "port": 9229,
-      "restart": true,
-      "skipFiles": [
-        "<node_internals>/**"
-      ]
-    },
-    {
-      "type": "node",
       "request": "launch",
       "name": "Launch Program",
       "skipFiles": [
@@ -26,6 +16,16 @@
       "args": ["--", "."],
       "outFiles": [
         "${workspaceFolder}/**/*.js"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "Attach",
+      "port": 9229,
+      "restart": true,
+      "skipFiles": [
+        "<node_internals>/**"
       ]
     }
   ]

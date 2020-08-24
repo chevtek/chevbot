@@ -1,4 +1,4 @@
-import { MessageAttachment } from "discord.js";
+export const command = "ping";
 
 export const description = "Test if the bot is listening.";
 

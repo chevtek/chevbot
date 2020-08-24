@@ -50,9 +50,5 @@ export default (cmdInput, context) => {
       }
       context.message.channel.send(output);
     }
-    // if (output) context.message.channel.send(new MessageEmbed({
-    //   color: 0x00ff00,
-    //   title: output
-    // }));
   });
 }
