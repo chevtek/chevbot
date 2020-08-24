@@ -1,5 +1,5 @@
 {
-  "commandPrefix": "cb.",
+  "commandPrefix": "/",
   "botTag": "Chevbot#2278",
   "discord": {
     "clientId": "716029527972773998",

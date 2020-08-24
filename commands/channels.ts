@@ -1,4 +1,4 @@
-import { TextChannel } from "discord.js";
+import { TextChannel, MessageEmbed } from "discord.js";
 import discordClient from "../discord-client";
 
 export const description = "List all channels and their descriptions.";
@@ -10,12 +10,16 @@ export function handler({ message }) {
     .map(channel => channel as TextChannel)
     .sort((a: any, b: any) => (a.name > b.name) ? 1 : -1);
 
-  const lines: string[] = [];
-  for (const channel of channels) {
-    const {name, topic} = channel;
-    lines.push(`> **${name}:** ${topic && topic.length ? topic : "No description."}`);
-  }
-
-  message.channel.send(lines.join('\n'));
+  message.channel.send(new MessageEmbed({
+    title: `${message.channel.guild.name} Channels`,
+    thumbnail: {
+      url: message.channel.guild.iconURL()
+    },
+    color: 0x00ff00,
+    fields: channels.map(({ name, topic }) => ({
+      name,
+      value: topic && topic.length ? topic : "No description."
+    }))
+  }));
 
 }
