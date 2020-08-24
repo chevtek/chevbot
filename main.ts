@@ -17,8 +17,11 @@ discordClient.on("message", message => {
   parse(content.substr(commandPrefix.length), { message });
 });
 
+const port = process.env.PORT || 3000;
+const host = process.env.WEBSITE_HOSTNAME || "localhost";
+
 http.createServer((req, res) => {
   res.writeHead(200);
-  res.write("Chevbot is running.");
+  res.write("Chevbot is running.\n");
   res.end();
-}).listen(process.env.PORT || 3000);
+}).listen(port, () => console.log(`Chevbot running. Check status at http://${host}:${port}`));
