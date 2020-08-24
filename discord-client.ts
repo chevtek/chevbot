@@ -22,7 +22,7 @@ client.on("guildMemberAdd", async member => {
   const ctx = canvas.getContext('2d');
 	const background = await Canvas.loadImage("./wallpaper.jpg");
   ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-  ctx.font = "28px sans-serif";
+  ctx.font = "28px Arial";
 	ctx.fillStyle = "#ffffff";
 	ctx.fillText("Welcome to the server,", canvas.width / 2.5, canvas.height / 3.5);
   ctx.font = applyText(canvas, `${member.displayName}!`);
@@ -53,7 +53,7 @@ function applyText (canvas, text) {
 
 	do {
 		// Assign the font to the context and decrement it so it can be measured again
-		ctx.font = `${fontSize -= 10}px sans-serif`;
+		ctx.font = `${fontSize -= 10}px Arial`;
 		// Compare pixel width of the text to the canvas minus the approximate avatar size
 	} while (ctx.measureText(text).width > canvas.width - 300);
 
