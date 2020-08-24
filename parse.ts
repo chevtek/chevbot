@@ -1,8 +1,7 @@
-import config from "config";
 import yargs from "yargs";
 import { MessageEmbed } from "discord.js";
 
-const { commandPrefix } = config as any;
+const { COMMAND_PREFIX } = process.env;
 
 yargs
   .alias("help", "h")
@@ -38,7 +37,7 @@ export default (cmdInput, context) => {
           description: "`<command>   [--help]`",
           color: 0x00ff00,
           fields: lines.map(line => ({
-            name: `\`${commandPrefix}${line.substr(0, line.indexOf(" "))}\``,
+            name: `\`${COMMAND_PREFIX}${line.substr(0, line.indexOf(" "))}\``,
             value: line.substr(line.indexOf(" "))
           }))
         });

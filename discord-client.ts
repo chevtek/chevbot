@@ -1,17 +1,13 @@
-import Discord, { TextChannel, MessageAttachment } from "discord.js";
+import { Client as DiscordClient, TextChannel, MessageAttachment } from "discord.js";
 import { createCanvas, registerFont, loadImage } from "canvas";
-import config from "config";
 import moment from "moment";
 
-const {
-  discord: { token },
-  commandPrefix
-} = config as any;
+const { DISCORD_BOT_TOKEN, COMMAND_PREFIX } = process.env;
 
-const client = new Discord.Client();
+const client = new DiscordClient();
 
 client.on("ready", () => {
-  client.user?.setActivity({ name: `for cmds | ${commandPrefix}help`, type: "WATCHING" });
+  client.user?.setActivity({ name: `for cmds | ${COMMAND_PREFIX}help`, type: "WATCHING" });
   console.log(`Chevbot online [${moment()}]`);
 });
 
@@ -42,7 +38,7 @@ client.on("guildMemberAdd", async member => {
   channel.send(`<@${member.id}>`,attachment);
 });
 
-client.login(token);
+client.login(DISCORD_BOT_TOKEN);
 
 export default client;
 
