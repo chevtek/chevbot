@@ -3,16 +3,17 @@ import discordClient from "../discord-client";
 
 export const description = "List all channels and their descriptions.";
 
-export function handler({ discord }) {
+export async function handler({ discord }) {
 
-  const { channel } = discord.message;
+  const { message } = discord;
+  const { channel } = message;
 
   const channels = discordClient.channels.cache
     .filter(info => info.type === "text")
     .map(channel => channel as TextChannel)
     .sort((a: any, b: any) => (a.name > b.name) ? 1 : -1);
 
-  channel.send(new MessageEmbed({
+  await message.author.send(new MessageEmbed({
     title: `${channel.guild.name} Channels`,
     thumbnail: {
       url: channel.guild.iconURL()
@@ -23,5 +24,7 @@ export function handler({ discord }) {
       value: topic && topic.length ? topic : "No description."
     }))
   }));
+
+  channel.send(`<@${message.author.id}> I have sent the channel list to you in a private message <:awesome:708028362488021092>`);
 
 }

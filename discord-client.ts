@@ -1,6 +1,7 @@
 import { Client as DiscordClient, TextChannel, MessageAttachment } from "discord.js";
 import { createCanvas, registerFont, loadImage } from "canvas";
 import moment from "moment";
+import { handler as listChannels } from "./commands/channels";
 
 const { DISCORD_BOT_TOKEN, COMMAND_PREFIX } = process.env;
 
@@ -35,7 +36,16 @@ client.on("guildMemberAdd", async member => {
   const avatar = await loadImage(member.user!.displayAvatarURL({ format: 'jpg' }));
   ctx.drawImage(avatar, 25, 25, 200, 200);
 	const attachment = new MessageAttachment(canvas.toBuffer(), "welcome-image.png");
-  channel.send(`<@${member.id}>`,attachment);
+	await channel.send(attachment);
+	await channel.send(`<@${member.id}>, here's a list of all the channels on this server! Some of them may require administrator permission to join.`);
+	listChannels({
+		discord: {
+			message: {
+				channel,
+				author: member
+			}
+		}
+	});
 });
 
 client.login(DISCORD_BOT_TOKEN);

@@ -15,7 +15,7 @@ yargs
   })
   .scriptName("")
   .showHelpOnFail(false)
-  .strict()
+  // .strict()
   .version(false)
   .wrap(null);
 

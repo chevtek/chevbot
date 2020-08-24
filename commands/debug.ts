@@ -1,11 +1,23 @@
-export const command = "debug <action>";
+export const command = "debug <action> [args..]";
 
 export const description = false;
 
-export function handler ({ discord, action }) {
+export const builder = {
+  user: {
+    positional: true
+  }
+};
+
+export async function handler ({ discord, action, args }) {
   const { message } = discord;
   switch (action) {
     case "emit-join-event":
-      message.client.emit("guildMemberAdd", message.member);
+      let user = message.member;
+      if (args && args.length) {
+        const mentionId = args[0].match(/^<@!?(\d+)>$/)[1];
+        user = message.client.users.cache.get(mentionId);
+      }
+      message.client.emit("guildMemberAdd", user);
+      break;
   }
 }
