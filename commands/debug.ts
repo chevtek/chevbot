@@ -15,7 +15,7 @@ export async function handler ({ discord, action, args }) {
       let user = message.member;
       if (args && args.length) {
         const mentionId = args[0].match(/^<@!?(\d+)>$/)[1];
-        user = message.client.users.cache.get(mentionId);
+        user = message.member.guild.members.cache.get(mentionId);
       }
       message.client.emit("guildMemberAdd", user);
       break;

@@ -25,6 +25,8 @@ export async function handler({ discord }) {
     }))
   }));
 
+  await message.author.send(`If you would like to join a private channel, please message an admin for ${channel.guild.name}.`)
+
   channel.send(`<@${message.author.id}> I have sent the channel list to you in a private message <:awesome:708028362488021092>`);
 
 }
