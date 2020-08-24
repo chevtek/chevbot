@@ -37,7 +37,6 @@ client.on("guildMemberAdd", async member => {
   ctx.drawImage(avatar, 25, 25, 200, 200);
 	const attachment = new MessageAttachment(canvas.toBuffer(), "welcome-image.png");
 	await channel.send(attachment);
-	await channel.send(`<@${member.id}>, here's a list of all the channels on this server! Some of them may require administrator permission to join.`);
 	listChannels({
 		discord: {
 			message: {
