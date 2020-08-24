@@ -1,7 +1,7 @@
 import Discord, { TextChannel, MessageAttachment } from "discord.js";
+import { createCanvas, registerFont, loadImage } from "canvas";
 import config from "config";
 import moment from "moment";
-import Canvas from "canvas";
 
 const {
   discord: { token },
@@ -17,10 +17,11 @@ client.on("ready", () => {
 
 client.on("guildMemberAdd", async member => {
   const channel = member.guild.channels.cache.find(ch => ch.name === "general") as TextChannel;
-  if (!channel) return;
-	const canvas = Canvas.createCanvas(700, 250);
+	if (!channel) return;
+	registerFont("./fonts/arial.ttf", { family: "sans-serif" });
+	const canvas = createCanvas(700, 250);
   const ctx = canvas.getContext('2d');
-	const background = await Canvas.loadImage("./wallpaper.jpg");
+	const background = await loadImage("./wallpaper.jpg");
   ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
   ctx.font = "28px Arial";
 	ctx.fillStyle = "#ffffff";
@@ -35,7 +36,7 @@ client.on("guildMemberAdd", async member => {
   ctx.stroke();
 	ctx.closePath();
 	ctx.clip();
-  const avatar = await Canvas.loadImage(member.user!.displayAvatarURL({ format: 'jpg' }));
+  const avatar = await loadImage(member.user!.displayAvatarURL({ format: 'jpg' }));
   ctx.drawImage(avatar, 25, 25, 200, 200);
 	const attachment = new MessageAttachment(canvas.toBuffer(), "welcome-image.png");
   channel.send(`<@${member.id}>`,attachment);
