@@ -1,4 +1,4 @@
-import { Client as DiscordClient, TextChannel, MessageAttachment } from "discord.js";
+import { Client as DiscordClient } from "discord.js";
 
 const { DISCORD_BOT_TOKEN } = process.env;
 

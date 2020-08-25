@@ -22,10 +22,11 @@ export async function handler({ discord }) {
     fields: channels.map(({ name, topic }) => ({
       name,
       value: topic && topic.length ? topic : "No description."
-    }))
+    })),
+    footer: {
+      text: `If you would like to join a private channel, please message an admin for ${channel.guild.name}.`
+    }
   }));
-
-  await message.author.send(`If you would like to join a private channel, please message an admin for ${channel.guild.name}.`)
 
   channel.send(`<@${message.author.id}> I have sent you a private message with a list of all the channels on this server <:awesome:708028362488021092>`);
 
