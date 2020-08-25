@@ -58,12 +58,20 @@ discordClient.on("guildMemberAdd", async member => {
     ctx.fillStyle = "#ffffff";
     ctx.fillText("Welcome to the server,", canvas.width / 2.5, canvas.height / 2.5);
     let fontSize = 70;
-    const text = `${member.displayName}!`;
-    do {
+    let text = `${member.displayName}!`;
+    let textFits = false;
+    while (!textFits && fontSize > 40) {
       ctx.font = `${fontSize -= 10}px Arial`;
-    } while (ctx.measureText(text).width > canvas.width - 300);
+      textFits = ctx.measureText(text).width < canvas.width - 300;
+    }
+    if (fontSize === 40 && !textFits) {
+      while (!textFits) {
+        text = text.substr(0, text.length - 1);
+        textFits = ctx.measureText(text).width < canvas.width - 300;
+      }
+    }
     ctx.fillStyle = "#00ff00";
-    ctx.fillText(member.displayName, canvas.width / 2.5, canvas.height / 1.5);
+    ctx.fillText(text, canvas.width / 2.5, canvas.height / 1.45);
     ctx.beginPath();
     ctx.arc(125, 125, 100, 0, Math.PI * 2, true);
     ctx.closePath();

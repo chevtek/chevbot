@@ -1,6 +1,6 @@
 export const command = "echo [--channel] <message..>";
 
-export const description = false;
+export const description = "Ask the bot to repeat a message you type.";
 
 export async function handler ({ discord, message, channel: channelName }) {
   let discordChannel = discord.message.channel;
