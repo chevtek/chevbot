@@ -21,6 +21,7 @@ yargs
 
 export default (cmdInput, context) => {
   yargs.parse(cmdInput, context || false, (err, { help }, output) => {
+    const { channel } = context.discord.message;
     if (output) {
       if (help) {
 
@@ -36,17 +37,28 @@ export default (cmdInput, context) => {
           title: "Chevbot Commands",
           description: "`<command>   [--help]`",
           color: 0x00ff00,
-          fields: lines.map(line => ({
-            name: `\`${COMMAND_PREFIX}${line.substr(0, line.indexOf(" "))}\``,
-            value: line.substr(line.indexOf(" "))
-          }))
+          fields: lines.map(line => {
+            const lastSquareBracket = line.lastIndexOf("]");
+            const lastAngleBracket = line.lastIndexOf(">");
+            let cmdTerminator = line.indexOf(" ");
+            if (lastSquareBracket > cmdTerminator) {
+              cmdTerminator = lastSquareBracket + 1;
+            }
+            if (lastAngleBracket > cmdTerminator) {
+              cmdTerminator = lastAngleBracket + 1;
+            }
+            return {
+              name: `\`${COMMAND_PREFIX}${line.substr(0, cmdTerminator)}\``,
+              value: line.substr(cmdTerminator)
+            };
+          })
         });
 
 
-        context.discord.message.channel.send(helpEmbed);
+        channel.send(helpEmbed);
         return;
       }
-      context.discord.message.channel.send(output);
+      channel.send(output);
     }
   });
 }
