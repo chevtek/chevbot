@@ -1,12 +1,8 @@
+import yargs from "yargs";
+
 export const command = "debug <action> [args..]";
 
 export const description = false;
-
-export const builder = {
-  user: {
-    positional: true
-  }
-};
 
 export async function handler ({ discord, action, args }) {
   const { message } = discord;

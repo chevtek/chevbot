@@ -1,13 +1,14 @@
-import { MessageEmbed } from "discord.js";
+import { MessageEmbed, Message } from "discord.js";
 export const command = "avatar [user]";
 
 export const description = "Display a user's avatar in the channel.";
 
-export function handler ({ discord, user }) {
+export async function handler ({ discord, user }) {
   const { message } = discord;
   let member = message.member;
   if (user) {
-    const memberId = user.match(/^<@!?(\d+)>$/)[1];
+    const memberId = user.match(/^<@!?(\d+)>$/)?.[1];
+    if (!memberId) return message.reply("Invalid user supplied.");
     member = message.guild.members.cache.get(memberId);
   }
   message.channel.send(new MessageEmbed({

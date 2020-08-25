@@ -1,64 +1,61 @@
-import yargs from "yargs";
+import Yargs from "yargs/yargs";
 import { MessageEmbed } from "discord.js";
 
 const { COMMAND_PREFIX } = process.env;
 
-yargs
-  .alias("help", "h")
-  .commandDir("commands", {
-    extensions: ["js", "ts"]
-  })
-  .exitProcess(false)
-  .parserConfiguration({
-    "strip-aliased": true,
-    "strip-dashed": true
-  })
-  .scriptName("")
-  .showHelpOnFail(false)
-  // .strict()
-  .version(false)
-  .wrap(null);
+const onFail = (err, channel) => {
+  const errorEmbed = new MessageEmbed()
+    .attachFiles(["./images/error-face.png"])
+    .setTitle("Something went wrong...")
+    .setColor(0xff0000)
+    .setDescription(`\`\`\`${err.stack ?? err.toString()}\`\`\``)
+    .setThumbnail("attachment://error-face.png")
+  channel.send(errorEmbed);
+};
 
 export default (cmdInput, context) => {
-  yargs.parse(cmdInput, context || false, (err, { help }, output) => {
-    const { channel } = context.discord.message;
-    if (output) {
-      if (help) {
+  const { channel } = context.discord.message;
 
-        let lines = output.split("\n");
-        lines = lines
-          .slice(3, lines.length - 3)
-          .map(line => line
-            .trimStart()
-            .replace(/\s+/g, " ")
-          );
+  const yargs = Yargs();
 
-        const helpEmbed = new MessageEmbed({
-          title: "Chevbot Commands",
-          description: "`<command>   [--help]`",
-          color: 0x00ff00,
-          fields: lines.map(line => {
-            const lastSquareBracket = line.lastIndexOf("]");
-            const lastAngleBracket = line.lastIndexOf(">");
-            let cmdTerminator = line.indexOf(" ");
-            if (lastSquareBracket > cmdTerminator) {
-              cmdTerminator = lastSquareBracket + 1;
-            }
-            if (lastAngleBracket > cmdTerminator) {
-              cmdTerminator = lastAngleBracket + 1;
-            }
-            return {
-              name: `\`${COMMAND_PREFIX}${line.substr(0, cmdTerminator)}\``,
-              value: line.substr(cmdTerminator)
-            };
-          })
-        });
+  yargs
+    .alias("help", "h")
+    .commandDir("commands", {
+      extensions: ["js", "ts"]
+    })
+    .exitProcess(false)
+    .fail((msg, err, yargs) => {
+      onFail(err, channel);
+    })
+    .parserConfiguration({
+      "strip-aliased": true,
+      "strip-dashed": true
+    })
+    .scriptName("")
+    .showHelpOnFail(false)
+    .usage(`<${COMMAND_PREFIX}command> [options]`)
+    .version(false)
+    .wrap(60);
 
-
-        channel.send(helpEmbed);
-        return;
+  try {
+    yargs.parse(cmdInput, context, (err, argv, output) => {
+      if (err) return onFail(err, channel);
+      const { help } = argv;
+      if (output) {
+        if (help) {
+        const cmdName = argv._[0]?.charAt(0).toUpperCase().concat(argv._[0]?.slice(1));
+          const helpEmbed = new MessageEmbed({
+            title: `${ cmdName ?? "Chevbot"} Help`,
+            color: 0x00ff00,
+            description: `\`\`\`${output}\`\`\``
+          });
+          channel.send(helpEmbed);
+          return;
+        }
+        channel.send(output);
       }
-      channel.send(output);
-    }
-  });
+    });
+  } catch (err) {
+    onFail(err, channel);
+  }
 }
