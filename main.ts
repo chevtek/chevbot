@@ -95,12 +95,10 @@ discordClient.on("message", message => {
   parse(content.substr(COMMAND_PREFIX.length), { discord: { message } });
 });
 
-const port = PORT || 3000;
-
 http.createServer((req, res) => {
   res.writeHead(200);
   res.write("Chevbot is running.\n\n");
   res.write(`COMMAND_PREFIX: ${COMMAND_PREFIX}\n`);
   res.write(`DISCORD_BOT_TAG: ${DISCORD_BOT_TAG}\n`);
   res.end();
-}).listen(port);
+}).listen(PORT || 3000);
