@@ -4,7 +4,7 @@ dotenv.config();
 import http from "http";
 import fs from "fs";
 import util from "util";
-import { MessageAttachment } from "discord.js";
+import { MessageAttachment, TextChannel } from "discord.js";
 import { createCanvas, registerFont, loadImage } from "canvas";
 import moment from "moment";
 import parse from "./parse";
