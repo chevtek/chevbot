@@ -44,7 +44,7 @@ discordClient.on("guildMemberAdd", async member => {
     ctx.lineTo(cornerRadius, height);
     ctx.quadraticCurveTo(0, height, 0, height - cornerRadius);
     ctx.lineTo(0, cornerRadius);
-    ctx.quadraticCurveTo(0, 0, cornerRadius, 0)
+    ctx.quadraticCurveTo(0, 0, cornerRadius, 0);
     ctx.closePath();
     ctx.clip();
     const bannerDir = "./images/welcome-banners";
@@ -76,7 +76,7 @@ discordClient.on("guildMemberAdd", async member => {
     ctx.arc(125, 125, 100, 0, Math.PI * 2, true);
     ctx.closePath();
     ctx.clip();
-    const avatar = await loadImage(member.user!.displayAvatarURL({ format: 'png' }));
+    const avatar = await loadImage(member.user!.displayAvatarURL({ format: "png" }));
     ctx.drawImage(avatar, 25, 25, 200, 200);
     const attachment = new MessageAttachment(canvas.toBuffer(), "welcome-image.png");
     await channel.send(attachment);
