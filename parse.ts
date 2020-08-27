@@ -1,5 +1,5 @@
 import Yargs from "yargs/yargs";
-import { MessageEmbed } from "discord.js";
+import { MessageEmbed, Message } from "discord.js";
 
 const { COMMAND_PREFIX } = process.env;
 
@@ -8,7 +8,7 @@ const onFail = (err, channel) => {
     .attachFiles(["./images/error-face.png"])
     .setTitle("Something went wrong...")
     .setColor(0xff0000)
-    .setDescription(`\`\`\`${err.stack ?? err.toString()}\`\`\``)
+    .setDescription(`\`\`\`${err?.stack ?? err.toString()}\`\`\``)
     .setThumbnail("attachment://error-face.png")
   channel.send(errorEmbed);
 };
@@ -25,6 +25,7 @@ export default (cmdInput, context) => {
     })
     .exitProcess(false)
     .fail((msg, err, yargs) => {
+      if (!err) return;
       onFail(err, channel);
     })
     .parserConfiguration({

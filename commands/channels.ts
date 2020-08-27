@@ -8,6 +8,11 @@ export async function handler({ discord }) {
   const { message } = discord;
   const { channel } = message;
 
+  if (channel.type === "dm") {
+    message.reply("This command can only be run from a server.");
+    return;
+  }
+
   const channels = discordClient.channels.cache
     .filter(info => info.type === "text")
     .map(channel => channel as TextChannel)
