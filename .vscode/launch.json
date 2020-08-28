@@ -16,8 +16,7 @@
       "args": ["--", "."],
       "outFiles": [
         "${workspaceFolder}/**/*.js"
-      ],
-      "console": "integratedTerminal"
+      ]
     },
     {
       "type": "node",

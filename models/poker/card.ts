@@ -1,14 +1,14 @@
 export class Card {
-  private _value: CardRank;
+  private _rank: CardRank;
   private _suit: CardSuit;
 
-  constructor (value: CardRank, suit: CardSuit) {
-    this._value = value;
+  constructor (rank: CardRank, suit: CardSuit) {
+    this._rank = rank;
     this._suit = suit;
   }
 
-  get value() {
-    return this._value;
+  get rank() {
+    return this._rank;
   }
 
   get suit() {

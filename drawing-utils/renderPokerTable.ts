@@ -91,8 +91,8 @@ export default async function (table: Table): Promise<Buffer> {
   const drawSeats = async () => {
     
     for (let index = 0; index < numberOfSeats; index++) {
-      const player = table.players[index];
-      if (!player) return;
+      const tablePlayer = table.players[index];
+      if (!tablePlayer) return;
 
       const [x, y] = seatLocations[index];
       const radius = 50;
@@ -107,19 +107,19 @@ export default async function (table: Table): Promise<Buffer> {
         avatarCtx.clip();
         avatarCtx.fillStyle = "#000000"//"#292B2F";
         avatarCtx.fillRect(0, 0, radius * 2, radius * 2);
-        const avatar = await loadImage(player.avatarUrl);
+        const avatar = await loadImage(tablePlayer.player.avatarUrl);
         avatarCtx.drawImage(avatar, 0, 0, radius * 2, radius * 2);
         avatarCtx.beginPath();
         avatarCtx.arc(radius, radius, radius - (padding/2), 0, Math.PI * 2, true);
         avatarCtx.closePath();
-        if (player === table.currentPlayer) {
+        if (tablePlayer === table.currentActor) {
           for (let index = 0; index < padding; index++) {
             const color = Math.floor((255 / padding) * index);
             avatarCtx.strokeStyle = `rgb(0,${color},0, 1)`;
             avatarCtx.lineWidth = (padding - index) * 1.5;
             avatarCtx.stroke();
           }
-        } else if (!player.folded) {
+        } else if (!tablePlayer.folded) {
           for (let index = 0; index < padding; index++) {
             const color = Math.floor((100 / padding) * index);
             avatarCtx.strokeStyle = `rgb(${color},${color},${color}, 1)`;
@@ -138,7 +138,7 @@ export default async function (table: Table): Promise<Buffer> {
           avatarCtx.fillStyle = "rgba(0,0,0,0.3)";
           avatarCtx.fill();
         }
-        const avatarFinal = await loadImage(avatarCanvas.toBuffer(), `${player.id}.png`);
+        const avatarFinal = await loadImage(avatarCanvas.toBuffer(), `${tablePlayer.player.id}.png`);
         ctx.drawImage(avatarFinal, x - radius, y - radius, radius * 2, radius * 2);
       };
 
@@ -151,17 +151,17 @@ export default async function (table: Table): Promise<Buffer> {
         roundRect(nameplateX, nameplateY, nameplateWidth, nameplateHeight, cornerRadius, ctx);
         ctx.fillStyle = "rgba(0,0,0,0.7)";
         ctx.fill();
-        if (player === table.currentPlayer) {
+        if (tablePlayer === table.currentActor) {
           ctx.fillStyle = "#00ff00";
-        } else if (player.folded) {
+        } else if (tablePlayer.folded) {
           ctx.fillStyle = "#999999";
         } else {
           ctx.fillStyle = "#ffffff";
         }
-        let text = player.name;
+        let text = tablePlayer.player.name;
         const measureText = (text) => ctx.measureText(text).width < radius*2 - 3;
         let textFits = measureText(text);
-        ctx.font = player === table.currentPlayer ? `bold 18px Arial` : `18px Arial`;
+        ctx.font = tablePlayer === table.currentActor ? `bold 18px Arial` : `18px Arial`;
         if (!textFits && text.indexOf(" ") !== -1) {
           text = text.substr(0, text.indexOf(" "));
         }
@@ -182,21 +182,21 @@ export default async function (table: Table): Promise<Buffer> {
         roundRect(budgetX, budgetY, budgetWidth, budgetHeight, cornerRadius, ctx);
         ctx.fillStyle = "rgba(0,0,0,0.7)";
         ctx.fill();
-        if (!player.folded) {
+        if (!tablePlayer.folded) {
           ctx.fillStyle = "#999955";
-        } else if (player === table.currentPlayer) {
+        } else if (tablePlayer === table.currentActor) {
           ctx.fillStyle = "#ffff00";
         } else {
           ctx.fillStyle = "#ffffbb";
         }
-        ctx.font = player === table.currentPlayer ? `bold 16px Arial` : `16px Arial`;
-        ctx.fillText(formatMoney(player.stackSize), budgetX + radius, budgetY + (budgetHeight/2));
+        ctx.font = tablePlayer === table.currentActor ? `bold 16px Arial` : `16px Arial`;
+        ctx.fillText(formatMoney(tablePlayer.stackSize), budgetX + radius, budgetY + (budgetHeight/2));
       };
 
       const drawHoleCards = async () => {
         const cardsX = x - (cardWidth + (cardSpacing/2));
         const cardsY = y - (cardHeight/2);
-        const holeCards = player.holeCards;
+        const holeCards = tablePlayer.holeCards;
         if (!holeCards) return;
         for (let index = 0; index < 2; index++) {
           drawCard(cardsX + (((cardWidth + cardSpacing) * index)), cardsY, holeCards[index]);
