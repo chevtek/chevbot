@@ -30,7 +30,8 @@ export default (cmdInput, context) => {
     })
     .parserConfiguration({
       "strip-aliased": true,
-      "strip-dashed": true
+      "strip-dashed": true,
+      "sort-commands": true
     })
     .scriptName("")
     .showHelpOnFail(false)

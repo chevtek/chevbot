@@ -1,21 +1,16 @@
-import { GameState, Player } from "../models/poker";
 import { renderPokerTable } from "../drawing-utils";
 import formatMoney from "../utilities/formatMoney";
 import { MessageEmbed, MessageAttachment, Message } from "discord.js";
+import { Player } from "../models/poker/table";
 
 const { COMMAND_PREFIX } = process.env;
 
-const gameStates: {[key: string]: GameState} = {};
 const knownPlayers: {[key: string]: Player} = {};
 
 const getPlayer = (message: Message) => {
   let player = knownPlayers[message.author.id];
   if (!player) {
-    player = new Player(
-      message.member!.displayName ?? message.author.username,
-      message.author.displayAvatarURL({ format: "png" }),
-      message.author.id
-    );
+    player = Player.fromDiscordMessage(message);
     knownPlayers[message.author.id] = player;
   }
   return player;

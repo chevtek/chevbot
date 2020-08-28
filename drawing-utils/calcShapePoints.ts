@@ -6,8 +6,5 @@ export default function (x, y, size, offset, sides) {
       y + size * Math.sin((index + offset) * 2 * Math.PI / sides)
     ]);
   }
-  for (let index = 0; index < 6; index++) {
-    shapePoints.push(shapePoints.shift());
-  }
   return shapePoints;
 }

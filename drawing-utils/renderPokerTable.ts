@@ -1,9 +1,22 @@
 import { createCanvas, registerFont, loadImage } from "canvas";
 import { calcShapePoints, roundRect } from ".";
-import { GameState, Card, Round, CardSuit } from "../models/poker";
 import formatMoney from "../utilities/formatMoney";
+import { Table, CardSuit, Card, BettingRound } from "../models/poker";
 
-export default async function (gameState: GameState): Promise<Buffer> {
+const suitChar = (suit: CardSuit) => {
+  switch (suit) {
+    case CardSuit.CLUB:
+      return "♣";
+    case CardSuit.DIAMOND:
+      return "♦";
+    case CardSuit.HEART:
+      return "♥";
+    case CardSuit.SPADE:
+      return "♠";
+  }
+};
+
+export default async function (table: Table): Promise<Buffer> {
 
   registerFont("./fonts/arial.ttf", { family: "sans-serif" });
   registerFont("./fonts/arialbd.ttf", { family: "sans-serif" });
@@ -11,11 +24,12 @@ export default async function (gameState: GameState): Promise<Buffer> {
   const width = 600, height = 600;
   const xCenter = width / 2, yCenter = height / 2;
   const tableRadius = 230, tableEdgeWidth = 35;
-  const numberOfSeats = 10;
+  const numberOfSeats = 9;
   const cardWidth = 50, cardHeight = 75, cardSpacing = 3;
-  const tableCorners = calcShapePoints(xCenter, yCenter, tableRadius, 0, numberOfSeats);
-  const seatLocations = calcShapePoints(xCenter, yCenter, tableRadius + 10, 0.5, numberOfSeats);
-  const buttonLocations = calcShapePoints(xCenter, yCenter, tableRadius - 65, 0.75, numberOfSeats);
+  const tableOffset = 1.5;
+  const tableCorners = calcShapePoints(xCenter, yCenter, tableRadius, tableOffset, numberOfSeats);
+  const seatLocations = calcShapePoints(xCenter, yCenter, tableRadius + 10, tableOffset + 0.5, numberOfSeats);
+  const buttonLocations = calcShapePoints(xCenter, yCenter, tableRadius - 65, tableOffset + 0.75, numberOfSeats);
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
 
@@ -71,13 +85,13 @@ export default async function (gameState: GameState): Promise<Buffer> {
     }
     ctx.fillStyle = "rgba(0,0,0,0.5)";
     ctx.font = "bold 500px Arial";
-    ctx.fillText(CardSuit.CLUB, xCenter, yCenter - 35);
+    ctx.fillText(suitChar(CardSuit.CLUB), xCenter, yCenter - 35);
   };
 
   const drawSeats = async () => {
     
     for (let index = 0; index < numberOfSeats; index++) {
-      const player = gameState.getPlayer(index);
+      const player = table.players[index];
       if (!player) return;
 
       const [x, y] = seatLocations[index];
@@ -98,14 +112,14 @@ export default async function (gameState: GameState): Promise<Buffer> {
         avatarCtx.beginPath();
         avatarCtx.arc(radius, radius, radius - (padding/2), 0, Math.PI * 2, true);
         avatarCtx.closePath();
-        if (gameState.turnIndex === index) {
+        if (player === table.currentPlayer) {
           for (let index = 0; index < padding; index++) {
             const color = Math.floor((255 / padding) * index);
             avatarCtx.strokeStyle = `rgb(0,${color},0, 1)`;
             avatarCtx.lineWidth = (padding - index) * 1.5;
             avatarCtx.stroke();
           }
-        } else if (gameState.isFolded(player)) {
+        } else if (!player.folded) {
           for (let index = 0; index < padding; index++) {
             const color = Math.floor((100 / padding) * index);
             avatarCtx.strokeStyle = `rgb(${color},${color},${color}, 1)`;
@@ -137,9 +151,9 @@ export default async function (gameState: GameState): Promise<Buffer> {
         roundRect(nameplateX, nameplateY, nameplateWidth, nameplateHeight, cornerRadius, ctx);
         ctx.fillStyle = "rgba(0,0,0,0.7)";
         ctx.fill();
-        if (gameState.turnIndex === index) {
+        if (player === table.currentPlayer) {
           ctx.fillStyle = "#00ff00";
-        } else if (gameState.isFolded(player)) {
+        } else if (player.folded) {
           ctx.fillStyle = "#999999";
         } else {
           ctx.fillStyle = "#ffffff";
@@ -147,7 +161,7 @@ export default async function (gameState: GameState): Promise<Buffer> {
         let text = player.name;
         const measureText = (text) => ctx.measureText(text).width < radius*2 - 3;
         let textFits = measureText(text);
-        ctx.font = gameState.turnIndex === index ? `bold 18px Arial` : `18px Arial`;
+        ctx.font = player === table.currentPlayer ? `bold 18px Arial` : `18px Arial`;
         if (!textFits && text.indexOf(" ") !== -1) {
           text = text.substr(0, text.indexOf(" "));
         }
@@ -168,21 +182,21 @@ export default async function (gameState: GameState): Promise<Buffer> {
         roundRect(budgetX, budgetY, budgetWidth, budgetHeight, cornerRadius, ctx);
         ctx.fillStyle = "rgba(0,0,0,0.7)";
         ctx.fill();
-        if (gameState.isFolded(player)) {
+        if (!player.folded) {
           ctx.fillStyle = "#999955";
-        } else if (gameState.turnIndex === index) {
+        } else if (player === table.currentPlayer) {
           ctx.fillStyle = "#ffff00";
         } else {
           ctx.fillStyle = "#ffffbb";
         }
-        ctx.font = gameState.turnIndex === index ? `bold 16px Arial` : `16px Arial`;
-        ctx.fillText(formatMoney(gameState.getBudget(index)), budgetX + radius, budgetY + (budgetHeight/2));
+        ctx.font = player === table.currentPlayer ? `bold 16px Arial` : `16px Arial`;
+        ctx.fillText(formatMoney(player.stackSize), budgetX + radius, budgetY + (budgetHeight/2));
       };
 
       const drawHoleCards = async () => {
         const cardsX = x - (cardWidth + (cardSpacing/2));
         const cardsY = y - (cardHeight/2);
-        const holeCards = gameState.getHoleCards(gameState.turnIndex);
+        const holeCards = player.holeCards;
         if (!holeCards) return;
         for (let index = 0; index < 2; index++) {
           drawCard(cardsX + (((cardWidth + cardSpacing) * index)), cardsY, holeCards[index]);
@@ -201,7 +215,7 @@ export default async function (gameState: GameState): Promise<Buffer> {
     
     // Dealer Button
     const drawDealer = () => {
-      const [x, y] = buttonLocations[gameState.dealerIndex];
+      const [x, y] = buttonLocations[table.dealerPosition];
       ctx.beginPath();
       ctx.arc(x, y, buttonSize, 0, Math.PI * 2, true);
       ctx.closePath();
@@ -217,7 +231,7 @@ export default async function (gameState: GameState): Promise<Buffer> {
 
     // Small Blind
     const drawSmallBlind = () => {
-      const [x, y] = buttonLocations[gameState.dealerIndex + 1];
+      const [x, y] = buttonLocations[table.dealerPosition + 1];
       ctx.beginPath();
       ctx.arc(x, y, buttonSize, 0, Math.PI * 2, true);
       ctx.closePath();
@@ -233,7 +247,7 @@ export default async function (gameState: GameState): Promise<Buffer> {
 
     // Big Blind
     const drawBigBlind = () => {
-      const [x, y] = buttonLocations[gameState.dealerIndex + 2];
+      const [x, y] = buttonLocations[table.dealerPosition + 2];
       ctx.beginPath();
       ctx.arc(x, y, buttonSize, 0, Math.PI * 2, true);
       ctx.closePath();
@@ -247,10 +261,10 @@ export default async function (gameState: GameState): Promise<Buffer> {
       ctx.fillText("BB", x, y);
     };
 
-    if (gameState.round !== undefined) {
+    if (table.currentRound) {
       drawDealer();
     }
-    if (gameState.round === Round.PRE_FLOP) {
+    if (table.currentRound === BettingRound.PRE_FLOP) {
       drawBigBlind();
       drawSmallBlind();
     }
@@ -272,18 +286,19 @@ export default async function (gameState: GameState): Promise<Buffer> {
     };
 
     drawCardPlaceholders();
-    for (let index = 0; index < gameState.cards.length; index++) {
+    for (let index = 0; index < table.communityCards.length; index++) {
       const xStart = (xCenter - (cardSpacing * 2)) - (cardWidth * 2.5);
       const x = xStart + ((cardWidth + cardSpacing) * index);
       const y = yCenter - (cardHeight / 2);
-      const card = gameState.cards[index];
+      const card = table.communityCards[index];
       drawCard(x, y, card);
     }
 
   };
 
-  const drawPot = async () => {
-    if (!gameState.mainPot) return;
+  const drawCurrentPot = async () => {
+    const currentPot = table.currentPot();
+    if (!currentPot) return;
     const cornerRadius = 10;
     const width = ((cardWidth * 5) + (cardSpacing * 4) - (cardWidth*1.5));
     const height = 50;
@@ -294,7 +309,7 @@ export default async function (gameState: GameState): Promise<Buffer> {
     ctx.fill();
     ctx.font = "bold 30px Arial";
     ctx.fillStyle = "#ffff00";
-    ctx.fillText(formatMoney(gameState.mainPot.amount), xCenter, y + (height/2));
+    ctx.fillText(formatMoney(currentPot), xCenter, y + (height/2));
   };
 
   const drawWinner = async () => {
@@ -315,9 +330,9 @@ export default async function (gameState: GameState): Promise<Buffer> {
   await drawBackground();
   await drawTable();
   await drawButtons();
-  await drawSeats();
+  await drawSeats().catch(console.log);
   await drawCards();
-  await drawPot();
+  await drawCurrentPot();
   //await drawWinner();
 
   return canvas.toBuffer();
