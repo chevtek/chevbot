@@ -44,7 +44,10 @@ export class Table {
   }
 
   get actingPlayers () {
-    return this.players.filter(player => !player.folded && player.stackSize > 0);
+    return this.players.filter(player => !player.folded
+      && player.stackSize > 0
+      && this.currentBet
+      && player.bet < this.currentBet);
   }
 
   get activePlayers () {
@@ -98,7 +101,11 @@ export class Table {
     if (existingPlayers.length > 0 && !this.debug) {
       throw new Error("Player already joined this table.");
     }
-    this.players.push(new TablePlayer(newPlayer, buyIn, this));
+    const newTablePlayer = new TablePlayer(newPlayer, buyIn, this);
+    if (this.currentRound) {
+      newTablePlayer.folded = true;
+    }
+    this.players.push(newTablePlayer);
   }
 
   standUp(player: TablePlayer | string): void {
@@ -108,8 +115,16 @@ export class Table {
         throw new Error(`No player found.`);
       }
     }
-    const playerIndex = this.players.indexOf(player);
-    this.players.splice(playerIndex, 1);
+    if (this.currentRound) {
+      player.folded = true;
+      player.left = true;
+      if (this.currentActor === player) {
+        this.nextAction();
+      }
+    } else {
+      const playerIndex = this.players.indexOf(player);
+      this.players.splice(playerIndex, 1);
+    }
   }
 
   startHand () {
@@ -117,6 +132,10 @@ export class Table {
     if (this.currentRound) {
       throw new Error("There is already an active hand!");
     }
+
+    // Remove players who left;
+    const leavingPlayers = this.players.filter(player => player.left);
+    leavingPlayers.forEach(player => this.standUp(player));
 
     // Remove busted players;
     const bustedPlayers = this.players.filter(player => player.stackSize === 0);
@@ -184,7 +203,7 @@ export class Table {
   nextAction () {
 
     // See if everyone has folded.
-    if (this.activePlayers.length === 1) {
+    if (this.actingPlayers.length === 0) {
       delete this.currentRound;
       this.showdown();
       return;
@@ -461,6 +480,7 @@ export class TablePlayer {
     holeCards?: [Card, Card];
     folded: boolean = false;
     showCards: boolean = false;
+    left: boolean = false;
 
     constructor (
       public player: Player,
@@ -527,8 +547,11 @@ export class TablePlayer {
       if (!legalActions.includes("raise") && !legalActions.includes("bet")) {
         throw new Error("Illegal action.");
       }
-      if (isNaN(amount)) {
+      if (amount === undefined || isNaN(amount)) {
         throw new Error("Amount was not a valid number.");
+      }
+      if (amount > this.stackSize) {
+        throw new Error("You cannot bet more than you brought to the table.");
       }
       const currentBet = this.table.currentBet;
       const lastRaise = this.table.lastRaise;
@@ -536,7 +559,11 @@ export class TablePlayer {
       const raiseAmount = currentBet ? amount - currentBet : amount;
       // Do not allow the raise if it's less than the minimum and they aren't going all-in.
       if (raiseAmount < minRaise && amount < this.stackSize) {
-        throw new Error(`You must raise by at least ${minRaise}`);
+        if (currentBet) {
+          throw new Error(`You must raise by at least \`$${minRaise}\`, making the bet \`$${minRaise + currentBet}\`.`);
+        } else {
+          throw new Error(`You must bet at least \`$${minRaise}\`.`);
+        }
       } else if (raiseAmount < minRaise && amount >= this.stackSize) {
         // When the all-in player is raising for less than the minimum raise then increase the bet amount but do not change last raise value.
         this.bet += this.stackSize;

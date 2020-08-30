@@ -229,9 +229,9 @@ export default async function (table: Table): Promise<Buffer> {
 
       await drawAvatar();
       await drawBudget();
-      tablePlayer.showCards && await drawHoleCards();
+      (tablePlayer.showCards || table.debug) && await drawHoleCards();
       await drawNameplate();
-      tablePlayer.stackSize === 0 && !table.currentRound && await drawBusted();
+      (tablePlayer.stackSize === 0 || tablePlayer.left) && !table.currentRound && await drawBusted();
     }
   };
 

@@ -2,7 +2,7 @@ import { Message } from "discord.js";
 import tables from "../../poker-tables";
 import { Player } from "../../models/poker";
 
-export const command = ["join [buy-in]", "j"]
+export const command = ["join [buy-in]", "j", "sit", "sit-down"];
 
 export const description = "Join the current game.";
 

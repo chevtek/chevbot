@@ -41,7 +41,6 @@ export async function handler (argv) {
     buyIn,
     bigBlind,
     smallBlind,
-    refresh,
     reset,
     debug
   } = argv;
@@ -57,7 +56,6 @@ export async function handler (argv) {
       if (!player) {
         table.sitDown(Player.fromDiscordMessage(message), table.buyIn);
       }
-      message.channel.send(await table.render());
       return;
     }
     try {

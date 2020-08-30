@@ -5,7 +5,8 @@
   "main": "main.ts",
   "scripts": {
     "dev": "ts-node-dev --project ./tsconfig.json ./main.ts",
-    "install": "tsc",
+    "install": "npm run build",
+    "build": "tsc --project ./tsconfig.json",
     "start": "node ./build/main.js"
   },
   "repository": {
