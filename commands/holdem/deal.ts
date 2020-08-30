@@ -27,6 +27,7 @@ export async function handler ({ discord }) {
   let table = tables[message.channel.id];
   if (!table) {
     message.reply("There is no active Hold'em game in this channel.");
+    return;
   }
 
   try {
