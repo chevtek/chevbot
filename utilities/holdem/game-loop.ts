@@ -129,8 +129,6 @@ export default async function (message: Message) {
 
         const collected = await prompt.promise!;
 
-        console.log(`Listener finished for ${tablePlayer.player.name}.`);
-
         const response = collected.first()!;
         let action: string;
         if (!response) return;
