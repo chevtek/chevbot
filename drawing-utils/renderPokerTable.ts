@@ -385,6 +385,16 @@ export default async function (table: Table): Promise<Buffer> {
       line1 = `Draw!`;
       line2 = firstWinner.hand.name;
     }
+    const measureText = (text) => ctx.measureText(text).width < width - 3;
+    let textFits = measureText(line1);
+    if (!textFits && line1.indexOf(" ") !== -1) {
+      line1 = line1.substr(0, line1.indexOf(" "));
+    }
+    textFits = measureText(line1);
+    while (!textFits) {
+      line1 = line1.substr(0, line1.length - 1);
+      textFits = measureText(line1);
+    }
     ctx.fillText(line1, xCenter, y + (height/4));
     ctx.font = "30px Arial";
     ctx.fillText(line2, xCenter, y + (height - (height/4)));

@@ -25,6 +25,7 @@ export async function handler ({ discord }) {
       },
       { max: 1, time: 15000, errors: ["time"] }
     );
+    delete tables[message.channel.id];
     message.reply("The Hold'em table for this channel has been deleted.");
   } catch (err) {
     message.reply("No confirmation received. The table was not destroyed.");
