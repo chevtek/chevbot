@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
 import tables from "../../poker-tables";
 
-export const command = ["destroy", "finish", "end"];
+export const command = ["destroy", "finish", "end", "delete"];
 
 export const description = "Destroy the current table for this channel.";
 
@@ -23,10 +23,10 @@ export async function handler ({ discord }) {
         if (response.author.id !== message.author.id) return false;
         return response.content === "CONFIRM";
       },
-      { max: 1, time: 20000, errors: ["time"] }
+      { max: 1, time: 15000, errors: ["time"] }
     );
+    message.reply("The Hold'em table for this channel has been deleted.");
   } catch (err) {
     message.reply("No confirmation received. The table was not destroyed.");
-    return;
   }
 }
