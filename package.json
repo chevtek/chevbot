@@ -4,7 +4,7 @@
   "description": "",
   "main": "main.ts",
   "scripts": {
-    "start": "ts-node-dev ./main.ts"
+    "start": "ts-node-dev --project ./tsconfig.json ./main.ts"
   },
   "repository": {
     "type": "git",

@@ -1,8 +1,9 @@
 import { createCanvas, registerFont, loadImage } from "canvas";
 import { calcShapePoints, roundRect } from ".";
 import formatMoney from "../utilities/formatMoney";
-import { Table, CardSuit, Card, BettingRound, CardRank, TablePlayer } from "../models/poker";
-import { createContext } from "vm";
+// import { Table, CardSuit, Card, BettingRound, CardRank } from "../models/poker";
+import { Table, BettingRound } from "../models/poker/table";
+import { CardSuit, CardRank, Card } from "../models/poker/card";
 
 const suitChar = (suit: CardSuit) => {
   switch (suit) {
