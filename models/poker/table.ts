@@ -1,6 +1,5 @@
 import { Hand } from "pokersolver";
 import { Card, Player, CardSuit, CardRank } from ".";
-import { exception, table } from "console";
 import { MessageAttachment, MessageEmbed } from "discord.js";
 import { renderPokerTable } from "../../drawing-utils";
 import formatMoney from "../../utilities/formatMoney";
