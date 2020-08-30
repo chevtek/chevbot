@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "ts-node-dev --project ./tsconfig.json ./main.ts",
     "install": "npm run build",
-    "build": "tsc --project ./tsconfig.json",
+    "clean": "rimraf ./build",
+    "build": "npm run clean && tsc --project ./tsconfig.json",
     "start": "node ./build/main.js"
   },
   "repository": {
@@ -34,6 +35,7 @@
     "moment": "^2.26.0",
     "moment-timezone": "^0.5.31",
     "pokersolver": "^2.1.4",
+    "rimraf": "^3.0.2",
     "typescript": "^3.9.3",
     "yargs": "^15.4.1",
     "ytdl-core": "^3.2.0"
