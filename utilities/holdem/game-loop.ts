@@ -23,9 +23,10 @@ interface Prompt {
     filter: CollectorFilter,
     options: AwaitMessagesOptions
   },
-  message?: Message,
+  // message?: Message,
   promise?: Promise<Collection<string, Message> | Collection<string, MessageReaction>>,
-  resolve?: (value?: Promise<Collection<string, Message> | Collection<string, MessageReaction>>) => void,
+  resolve?: (value?: Collection<string, Message> | Collection<string, MessageReaction>) => void,
+  reject?: (reason?: any) => void
 }
 
 const prompts: {[key: string]: Prompt} = {};
@@ -33,35 +34,41 @@ const prompts: {[key: string]: Prompt} = {};
 export default async function (message: Message) {
 
   // Elaborate discord prompt creator. Allows chaining of previous promises.
-  const createPrompt = async (prompt: Prompt) => {
-    if (!prompt.awaitReactions && !prompt.awaitMessages) {
+  const createPrompt = async (oldPrompt: Prompt) => {
+    if (!oldPrompt.awaitReactions && !oldPrompt.awaitMessages) {
       throw new Error("You must provide a message or reaction collector.");
     }
-    const newMessage = await message.channel.send(prompt.text);
-    if (prompt.reactions) {
-      prompt.reactions.forEach(reaction => newMessage.react(reaction));
+    const newPrompt: Prompt = Object.assign({}, oldPrompt);
+    const newMessage = await message.channel.send(oldPrompt.text);
+    if (oldPrompt.reactions) {
+      oldPrompt.reactions.forEach(reaction => newMessage.react(reaction));
     }
-    prompt.promise = new Promise<Collection<string, Message> | Collection<string, MessageReaction>>((resolve, reject) => {
-      let newPromise;
-      if (prompt.awaitMessages && prompt.awaitReactions) {
-        newPromise = Promise.race([
-          newMessage.channel.awaitMessages(prompt.awaitMessages.filter, prompt.awaitMessages.options),
-          newMessage.awaitReactions(prompt.awaitReactions.filter, prompt.awaitReactions.options)
+    newPrompt.promise = new Promise<Collection<string, Message> | Collection<string, MessageReaction>>((resolve, reject) => {
+      let discordPromise;
+      if (oldPrompt.awaitMessages && oldPrompt.awaitReactions) {
+        discordPromise = Promise.race([
+          newMessage.channel.awaitMessages(oldPrompt.awaitMessages.filter, oldPrompt.awaitMessages.options),
+          newMessage.awaitReactions(oldPrompt.awaitReactions.filter, oldPrompt.awaitReactions.options)
         ]);
-      } else if (prompt.awaitMessages) {
-        newPromise = newMessage.channel.awaitMessages(prompt.awaitMessages.filter, prompt.awaitMessages.options);
-      } else if (prompt.awaitReactions) {
-        newPromise = newMessage.awaitReactions(prompt.awaitReactions.filter, prompt.awaitReactions.options);
+      } else if (oldPrompt.awaitMessages) {
+        discordPromise = newMessage.channel.awaitMessages(oldPrompt.awaitMessages.filter, oldPrompt.awaitMessages.options);
+      } else if (oldPrompt.awaitReactions) {
+        discordPromise = newMessage.awaitReactions(oldPrompt.awaitReactions.filter, oldPrompt.awaitReactions.options);
       }
-      if (prompt.resolve) {
-        prompt.resolve(newPromise);
-        prompt.message!.delete();
-      }
-      prompt.resolve = resolve;
-      newPromise.then(resolve).catch(reject);
+      discordPromise.then(resolve).catch(reject);
+      // if (prompt.resolve) {
+      //   discordPromise.then(prompt.resolve).catch(prompt.reject);
+      //   // prompt.message!.delete();
+      // }
+      newPrompt.resolve = resolve;
+      newPrompt.reject = reject;
     });
-    prompt.message = newMessage;
-    return prompts[message.channel.id] = prompt;
+
+    if (oldPrompt.promise) {
+      newPrompt.promise.then(oldPrompt.resolve).catch(oldPrompt.reject);
+    }
+
+    return prompts[message.channel.id] = newPrompt;
   };
 
   // If there is an existing prompt for this channel then create a new prompt and resolve the old one with it.
@@ -105,11 +112,12 @@ export default async function (message: Message) {
           text: `<@${tablePlayer.player.id}>, ${currentBetTxt} What would you like to do?\n You can type: ${actionsTxt}. You can also use the emoji reacts below this message.`,
           reactions,
           awaitMessages: {
-            filter: res => legalActions.includes(res.content.toLowerCase().split(" ")[0]) && res.author.id === tablePlayer.player.id,
+            filter: response => response && legalActions.includes(response.content.toLowerCase().split(" ")[0]) && response.author.id === tablePlayer.player.id,
             options: { max: 1 }
           },
           awaitReactions: {
-            filter: (reaction, user) => [
+            filter: (reaction, user) => reaction
+            && [
               ActionEmoji.CHECK_OR_CALL,
               ActionEmoji.BET_OR_RAISE,
               ActionEmoji.FOLD
@@ -125,7 +133,8 @@ export default async function (message: Message) {
 
         const response = collected.first()!;
         let action: string;
-        switch ((<MessageReaction>response).emoji?.id) {
+        if (!response) return;
+        switch ((<MessageReaction>response)?.emoji?.id) {
           case ActionEmoji.CHECK_OR_CALL:
             if (legalActions.includes("check")) {
               action = "check";
@@ -138,11 +147,11 @@ export default async function (message: Message) {
               text: `<@${tablePlayer.player.id}>, how much would you like to bet? \`<number|"all-in">\``,
               reactions: [ActionEmoji.ALL_IN],
               awaitMessages: {
-                filter: response => response.content !== "" && ((!isNaN(response.content.replace("$", "")) || response.content.toLowerCase() === "all-in")),
+                filter: response => response && response.content !== "" && ((!isNaN(response.content.replace("$", "")) || response.content.toLowerCase() === "all-in")),
                 options: { max: 1 }
               },
               awaitReactions: {
-                filter: (reaction, user) => reaction.emoji.id === ActionEmoji.ALL_IN
+                filter: (reaction, user) => reaction && reaction.emoji.id === ActionEmoji.ALL_IN
                   && user.id === tablePlayer.player.id,
                 options: { max: 1 }
               }
@@ -151,6 +160,7 @@ export default async function (message: Message) {
             const collected = await prompt.promise!;
 
             const betResponse = collected.first()!;
+            if (!betResponse) return;
             switch ((<MessageReaction>betResponse).emoji?.id) {
               case ActionEmoji.ALL_IN:
                 action = `raise ${tablePlayer.stackSize}`;

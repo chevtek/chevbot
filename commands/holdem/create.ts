@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 import { Table, Player } from "../../models/holdem";
-import { tables } from "../../utilities/holdem";
+import { tables, gameLoop, renderTable } from "../../utilities/holdem";
 
 export const command = ["create", "*"];
 
@@ -53,6 +53,10 @@ export async function handler (argv) {
   if (table) {
     if (!reset) {
       message.reply("There is already an active Hold'em game in this channel.");
+      await message.channel.send(await renderTable(table));
+      if (table.currentRound) {
+        gameLoop(message);
+      }
       return;
     }
     try {

@@ -17,5 +17,7 @@ export async function handler ({ discord }) {
     return;
   }
   await message.channel.send(await renderTable(table));
-  gameLoop(message);
+  if (table.currentRound) {
+    gameLoop(message);
+  }
 }
