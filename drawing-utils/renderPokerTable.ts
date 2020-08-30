@@ -1,9 +1,7 @@
 import { createCanvas, registerFont, loadImage } from "canvas";
 import { calcShapePoints, roundRect } from ".";
-import formatMoney from "../utilities/formatMoney";
-// import { Table, CardSuit, Card, BettingRound, CardRank } from "../models/poker";
-import { Table, BettingRound } from "../models/poker/table";
-import { CardSuit, CardRank, Card } from "../models/poker/card";
+import { formatMoney } from "../utilities/holdem";
+import { Table, CardSuit, Card, BettingRound, CardRank } from "../models/holdem";
 
 const suitChar = (suit: CardSuit) => {
   switch (suit) {

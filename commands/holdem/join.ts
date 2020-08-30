@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
-import tables from "../../poker-tables";
-import { Player } from "../../models/poker";
+import { Player } from "../../models/holdem";
+import { tables } from "../../utilities/holdem";
 
 export const command = ["join [buy-in]", "j", "sit", "sit-down"];
 

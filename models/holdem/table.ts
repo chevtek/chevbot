@@ -2,7 +2,7 @@ import { Hand } from "pokersolver";
 import { Card, Player, CardSuit, CardRank } from ".";
 import { MessageAttachment, MessageEmbed } from "discord.js";
 import { renderPokerTable } from "../../drawing-utils";
-import formatMoney from "../../utilities/formatMoney";
+import { formatMoney } from "../../utilities/holdem";
 
 const { COMMAND_PREFIX } = process.env;
 

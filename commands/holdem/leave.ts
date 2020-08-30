@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import tables from "../../poker-tables";
+import { tables } from "../../utilities/holdem";
 
 export const command = ["leave", "stand", "stand-up"];
 

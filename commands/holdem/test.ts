@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { Table, Player } from "../../models/poker";
+import { Table, Player } from "../../models/holdem";
 import util from "util";
 
 export const command = "test";

@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
-import { Table, Player } from "../../models/poker";
-import tables from "../../poker-tables";
+import { Table, Player } from "../../models/holdem";
+import { tables } from "../../utilities/holdem";
 
 export const command = ["create", "*"];
 
@@ -52,12 +52,7 @@ export async function handler (argv) {
   let table = tables[message.channel.id];
   if (table) {
     if (!reset) {
-      const [player] = table.players.filter(player => player.player.id === message.author.id);
-      if (!player) {
-        table.sitDown(Player.fromDiscordMessage(message), table.buyIn);
-      } else {
-        message.reply("You have already joined the active Hold'em table in this channel.");
-      }
+      message.reply("There is already an active Hold'em game in this channel.");
       return;
     }
     try {
