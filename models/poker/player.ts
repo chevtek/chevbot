@@ -12,9 +12,9 @@ export class Player {
   
   static fromDiscordMessage (message: Message) {
     return new Player(
-      message.author.displayAvatarURL({ format: "png"}),
+      message.author.id,
       message.member?.displayName ?? message.author.username,
-      message.author.id
+      message.author.displayAvatarURL({ format: "png"})
     );
   }
 }

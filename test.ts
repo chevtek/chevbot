@@ -1,13 +1,9 @@
-export class Pot implements Pot {
-  amount = 0;
-  eligiblePlayers: string[] = new Array()
-}
+import dotenv from "dotenv";
+dotenv.config();
+import discordClient from "./discord-client";
 
-export interface Pot {
-  amount: number
-  eligiblePlayers: string[]
-}
+const user = discordClient.users.cache.get("251192242834767873");
 
-var pot = new Pot();
-
-console.log(pot);
+user?.dmChannel.messages.cache.forEach(message => {
+  message.delete();
+});

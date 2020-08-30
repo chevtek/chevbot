@@ -1,7 +1,8 @@
 import { createCanvas, registerFont, loadImage } from "canvas";
 import { calcShapePoints, roundRect } from ".";
 import formatMoney from "../utilities/formatMoney";
-import { Table, CardSuit, Card, BettingRound } from "../models/poker";
+import { Table, CardSuit, Card, BettingRound, CardRank, TablePlayer } from "../models/poker";
+import { createContext } from "vm";
 
 const suitChar = (suit: CardSuit) => {
   switch (suit) {
@@ -24,12 +25,13 @@ export default async function (table: Table): Promise<Buffer> {
   const width = 600, height = 600;
   const xCenter = width / 2, yCenter = height / 2;
   const tableRadius = 230, tableEdgeWidth = 35;
-  const numberOfSeats = 9;
+  const numberOfSeats = 10;
   const cardWidth = 50, cardHeight = 75, cardSpacing = 3;
   const tableOffset = 1.5;
   const tableCorners = calcShapePoints(xCenter, yCenter, tableRadius, tableOffset, numberOfSeats);
   const seatLocations = calcShapePoints(xCenter, yCenter, tableRadius + 10, tableOffset + 0.5, numberOfSeats);
   const buttonLocations = calcShapePoints(xCenter, yCenter, tableRadius - 65, tableOffset + 0.75, numberOfSeats);
+  const betLocations = calcShapePoints(xCenter, yCenter, tableRadius - 65, tableOffset + 0.25, numberOfSeats);
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
 
@@ -46,10 +48,10 @@ export default async function (table: Table): Promise<Buffer> {
     ctx.stroke();
     ctx.font = "bold 35px Arial";
     ctx.fillStyle = card.color;
-    ctx.fillText(card.value, x + (cardWidth/2), y + (cardHeight/3.5));
+    ctx.fillText(card.rank === CardRank.TEN ? "10" : card.rank, x + (cardWidth/2), y + (cardHeight/3.5));
     ctx.font = "bold 45px Arial";
     ctx.fillStyle = card.color;
-    ctx.fillText(card.suit, x + (cardWidth/2), y + (cardHeight - (cardHeight/3.5)));
+    ctx.fillText(suitChar(card.suit), x + (cardWidth/2), y + (cardHeight - (cardHeight/3.5)));
   };
 
   const drawBackground = async () => {
@@ -83,7 +85,7 @@ export default async function (table: Table): Promise<Buffer> {
       ctx.lineWidth = tableEdgeWidth - index;
       ctx.stroke();
     }
-    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    ctx.fillStyle = "rgba(0,0,0,0.25)";
     ctx.font = "bold 500px Arial";
     ctx.fillText(suitChar(CardSuit.CLUB), xCenter, yCenter - 35);
   };
@@ -112,14 +114,14 @@ export default async function (table: Table): Promise<Buffer> {
         avatarCtx.beginPath();
         avatarCtx.arc(radius, radius, radius - (padding/2), 0, Math.PI * 2, true);
         avatarCtx.closePath();
-        if (tablePlayer === table.currentActor) {
+        if (tablePlayer === table.currentActor || table.winners?.includes(tablePlayer)) {
           for (let index = 0; index < padding; index++) {
             const color = Math.floor((255 / padding) * index);
             avatarCtx.strokeStyle = `rgb(0,${color},0, 1)`;
             avatarCtx.lineWidth = (padding - index) * 1.5;
             avatarCtx.stroke();
           }
-        } else if (!tablePlayer.folded) {
+        } else if (tablePlayer.folded) {
           for (let index = 0; index < padding; index++) {
             const color = Math.floor((100 / padding) * index);
             avatarCtx.strokeStyle = `rgb(${color},${color},${color}, 1)`;
@@ -151,7 +153,7 @@ export default async function (table: Table): Promise<Buffer> {
         roundRect(nameplateX, nameplateY, nameplateWidth, nameplateHeight, cornerRadius, ctx);
         ctx.fillStyle = "rgba(0,0,0,0.7)";
         ctx.fill();
-        if (tablePlayer === table.currentActor) {
+        if (tablePlayer === table.currentActor || table.winners?.includes(tablePlayer)) {
           ctx.fillStyle = "#00ff00";
         } else if (tablePlayer.folded) {
           ctx.fillStyle = "#999999";
@@ -161,7 +163,7 @@ export default async function (table: Table): Promise<Buffer> {
         let text = tablePlayer.player.name;
         const measureText = (text) => ctx.measureText(text).width < radius*2 - 3;
         let textFits = measureText(text);
-        ctx.font = tablePlayer === table.currentActor ? `bold 18px Arial` : `18px Arial`;
+        ctx.font = tablePlayer === table.currentActor || table.winners?.includes(tablePlayer) ? `bold 18px Arial` : `18px Arial`;
         if (!textFits && text.indexOf(" ") !== -1) {
           text = text.substr(0, text.indexOf(" "));
         }
@@ -182,15 +184,16 @@ export default async function (table: Table): Promise<Buffer> {
         roundRect(budgetX, budgetY, budgetWidth, budgetHeight, cornerRadius, ctx);
         ctx.fillStyle = "rgba(0,0,0,0.7)";
         ctx.fill();
-        if (!tablePlayer.folded) {
-          ctx.fillStyle = "#999955";
-        } else if (tablePlayer === table.currentActor) {
+        if (tablePlayer === table.currentActor || table.winners?.includes(tablePlayer)) {
           ctx.fillStyle = "#ffff00";
+        } else if (tablePlayer.folded) {
+          ctx.fillStyle = "#999955";
         } else {
           ctx.fillStyle = "#ffffbb";
         }
-        ctx.font = tablePlayer === table.currentActor ? `bold 16px Arial` : `16px Arial`;
-        ctx.fillText(formatMoney(tablePlayer.stackSize), budgetX + radius, budgetY + (budgetHeight/2));
+        const budgetTxt = tablePlayer.stackSize ? formatMoney(tablePlayer.stackSize) : "All In!";
+        ctx.font = tablePlayer === table.currentActor || table.winners?.includes(tablePlayer) ? `bold 18px Arial` : `18px Arial`;
+        ctx.fillText(budgetTxt, budgetX + radius, budgetY + (budgetHeight/2));
       };
 
       const drawHoleCards = async () => {
@@ -201,12 +204,33 @@ export default async function (table: Table): Promise<Buffer> {
         for (let index = 0; index < 2; index++) {
           drawCard(cardsX + (((cardWidth + cardSpacing) * index)), cardsY, holeCards[index]);
         }
+        if (!table.winners?.includes(tablePlayer) && tablePlayer !== table.currentActor) {
+          roundRect(cardsX, cardsY, (cardWidth * 2) + cardSpacing, cardHeight, 10, ctx);
+          if (tablePlayer.folded) {
+            ctx.fillStyle = "rgba(0,0,0,0.85)";
+          } else {
+            ctx.fillStyle = "rgba(0,0,0,0.5)";
+          }
+          ctx.fill();
+        }
+      };
+
+      const drawBusted = async () => {
+        ctx.beginPath();
+        ctx.moveTo(x - radius, y - radius);
+        ctx.lineTo(x + radius, y + radius);
+        ctx.moveTo(x + radius, y - radius);
+        ctx.lineTo(x - radius, y + radius);
+        ctx.strokeStyle = "#ff0000";
+        ctx.lineWidth = 5;
+        ctx.stroke();
       };
 
       await drawAvatar();
       await drawBudget();
-      await drawHoleCards();
+      tablePlayer.showCards && await drawHoleCards();
       await drawNameplate();
+      tablePlayer.stackSize === 0 && !table.currentRound && await drawBusted();
     }
   };
 
@@ -215,6 +239,7 @@ export default async function (table: Table): Promise<Buffer> {
     
     // Dealer Button
     const drawDealer = () => {
+      if (table.dealerPosition === undefined) return;
       const [x, y] = buttonLocations[table.dealerPosition];
       ctx.beginPath();
       ctx.arc(x, y, buttonSize, 0, Math.PI * 2, true);
@@ -231,7 +256,8 @@ export default async function (table: Table): Promise<Buffer> {
 
     // Small Blind
     const drawSmallBlind = () => {
-      const [x, y] = buttonLocations[table.dealerPosition + 1];
+      if (table.smallBlindPosition === undefined || table.currentRound !== BettingRound.PRE_FLOP) return;
+      const [x, y] = buttonLocations[table.smallBlindPosition];
       ctx.beginPath();
       ctx.arc(x, y, buttonSize, 0, Math.PI * 2, true);
       ctx.closePath();
@@ -247,7 +273,8 @@ export default async function (table: Table): Promise<Buffer> {
 
     // Big Blind
     const drawBigBlind = () => {
-      const [x, y] = buttonLocations[table.dealerPosition + 2];
+      if (table.bigBlindPosition === undefined || table.currentRound !== BettingRound.PRE_FLOP) return;
+      const [x, y] = buttonLocations[table.bigBlindPosition];
       ctx.beginPath();
       ctx.arc(x, y, buttonSize, 0, Math.PI * 2, true);
       ctx.closePath();
@@ -267,6 +294,29 @@ export default async function (table: Table): Promise<Buffer> {
     if (table.currentRound === BettingRound.PRE_FLOP) {
       drawBigBlind();
       drawSmallBlind();
+    }
+  };
+
+  const drawBets = async () => {
+    for (let index = 0; index < table.players.length; index++) {
+      const [x, y] = betLocations[index];
+      const player = table.players[index];
+      if (player.bet === 0) continue;
+      const bet = formatMoney(player.bet);
+      ctx.font = "bold 25px Arial";
+
+      if (player.stackSize === 0) {
+        ctx.fillStyle = "#ff0000";
+      } else if (player.raise && table.lastRaise === player.raise && table.currentBet === player.bet) {
+        ctx.fillStyle = "rgb(247,99,0)";
+      } else if (table.smallBlindPosition === index && table.currentRound === BettingRound.PRE_FLOP) {
+        ctx.fillStyle = "#0000aa";
+      } else if (table.bigBlindPosition === index && table.currentRound === BettingRound.PRE_FLOP) {
+        ctx.fillStyle = "#ffff00";
+      } else {
+        ctx.fillStyle = "#ffffff";
+      }
+      ctx.fillText(bet, x, y);
     }
   };
 
@@ -298,7 +348,7 @@ export default async function (table: Table): Promise<Buffer> {
 
   const drawCurrentPot = async () => {
     const currentPot = table.currentPot();
-    if (!currentPot) return;
+    if (!currentPot || currentPot.amount === 0) return;
     const cornerRadius = 10;
     const width = ((cardWidth * 5) + (cardSpacing * 4) - (cardWidth*1.5));
     const height = 50;
@@ -309,12 +359,12 @@ export default async function (table: Table): Promise<Buffer> {
     ctx.fill();
     ctx.font = "bold 30px Arial";
     ctx.fillStyle = "#ffff00";
-    ctx.fillText(formatMoney(currentPot), xCenter, y + (height/2));
+    ctx.fillText(formatMoney(currentPot.amount), xCenter, y + (height/2));
   };
 
   const drawWinner = async () => {
     const cornerRadius = 10;
-    const width = ((cardWidth * 5) + (cardSpacing * 4) - (cardWidth*1.5));
+    const width = ((cardWidth * 5) + (cardSpacing * 4));
     const height = 75;
     const x = xCenter - (width/2);
     const y = yCenter - (((cardHeight/2) + (cardSpacing*2)) + height);
@@ -323,17 +373,43 @@ export default async function (table: Table): Promise<Buffer> {
     ctx.fill();
     ctx.font = "bold 30px Arial";
     ctx.fillStyle = "#00ff00";
-    ctx.fillText("WINNER!", xCenter, y + (height/4));
-    ctx.fillText("Chev", xCenter, y + (height - (height/4)));
+    let line1, line2;
+    if (table.winners!.length === 1) {
+      const [winner] = table.winners!;
+      const activePlayers = table.players.filter(player => !player.folded);
+      line1 = `${winner.player.name} wins!`;
+      line2 = activePlayers.length > 1 ? winner.hand.name : "Opponents Folded";
+    } else {
+      const [firstWinner] = table.winners!;
+      line1 = `Draw!`;
+      line2 = firstWinner.hand.name;
+    }
+    ctx.fillText(line1, xCenter, y + (height/4));
+    ctx.font = "30px Arial";
+    ctx.fillText(line2, xCenter, y + (height - (height/4)));
+    // const arrowStartY = yCenter + cardHeight + 15;
+    // for (let index = 0; index < table.players.length; index++) {
+    //   const tablePlayer = table.players[index];
+    //   const [playerX, playerY] = seatLocations[index];
+    //   if (table.winners!.includes(tablePlayer)) {
+    //     ctx.beginPath();
+    //     ctx.moveTo(xCenter, arrowStartY);
+    //     ctx.lineTo(playerX, playerY - 60);
+    //     ctx.strokeStyle = "#00ff00";
+    //     ctx.lineWidth = 5;
+    //     ctx.stroke();
+    //   }
+    // }
   };
 
   await drawBackground();
   await drawTable();
   await drawButtons();
+  await drawBets();
   await drawSeats().catch(console.log);
   await drawCards();
   await drawCurrentPot();
-  //await drawWinner();
+  table.winners && await drawWinner();
 
   return canvas.toBuffer();
 

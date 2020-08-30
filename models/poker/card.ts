@@ -25,6 +25,19 @@ export class Card {
         return CardColor.RED;
     }
   }
+
+  get suitChar () {
+    switch (this._suit) {
+      case CardSuit.CLUB:
+        return "♣";
+      case CardSuit.DIAMOND:
+        return "♦";
+      case CardSuit.HEART:
+        return "♥";
+      case CardSuit.SPADE:
+        return "♠";
+    }
+  }
 }
 
 export enum CardColor {
@@ -44,7 +57,7 @@ export enum CardRank {
   KING = "K",
   QUEEN = "Q",
   JACK = "J",
-  TEN = "10",
+  TEN = "T",
   NINE = "9",
   EIGHT = "8",
   SEVEN = "7",
