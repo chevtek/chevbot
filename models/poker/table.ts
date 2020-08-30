@@ -46,8 +46,8 @@ export class Table {
   get actingPlayers () {
     return this.players.filter(player => !player.folded
       && player.stackSize > 0
-      && this.currentBet
-      && player.bet < this.currentBet);
+      && (!this.currentBet || this.currentBet && player.bet < this.currentBet)
+    );
   }
 
   get activePlayers () {
