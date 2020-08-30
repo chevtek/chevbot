@@ -203,7 +203,7 @@ export class Table {
   nextAction () {
 
     // See if everyone has folded.
-    if (this.actingPlayers.length === 0) {
+    if (this.activePlayers.length === 0) {
       delete this.currentRound;
       this.showdown();
       return;
@@ -576,7 +576,7 @@ export class TablePlayer {
         this.raise = this.table.lastRaise = currentBet ? amount - currentBet : amount;
         // Set last action to the player behind this one.
         this.table.lastPosition = this.table.currentPosition! - 1;
-        if (this.table.lastPosition === -1) this.table.lastPosition = this.table.players.length;
+        if (this.table.lastPosition === -1) this.table.lastPosition = this.table.players.length - 1;
       }
 
       this.table.nextAction();
