@@ -138,7 +138,7 @@ export default async function (message: Message) {
               text: `<@${tablePlayer.player.id}>, how much would you like to bet? \`<number|"all-in">\``,
               reactions: [ActionEmoji.ALL_IN],
               awaitMessages: {
-                filter: response => (!isNaN(response.content.replace("$", "")) || response.content.toLowerCase() === "all-in"),
+                filter: response => response.content !== "" && ((!isNaN(response.content.replace("$", "")) || response.content.toLowerCase() === "all-in")),
                 options: { max: 1 }
               },
               awaitReactions: {
@@ -157,6 +157,7 @@ export default async function (message: Message) {
                 break;
               case undefined:
                 const amount = (<Message>betResponse).content.toLowerCase().replace("$", "");
+                if (!amount) return;
                 if (amount === "all-in") {
                   action = `raise ${tablePlayer.stackSize}`;
                 } else {
@@ -201,41 +202,7 @@ export default async function (message: Message) {
             "raise <amount>",
             "Raise the current bet.",
             yargs => yargs.number("amount").required("amount"),
-            async ({ amount }) => {
-              // if (amount === tablePlayer.stackSize) {
-              //   const promptMessage = await message.channel.send(`<@${tablePlayer.player.id}>, are you sure you want to go **all-in**? (y/n)`);
-              //   promptMessage.react(ActionEmoji.YES);
-              //   promptMessage.react(ActionEmoji.NO);
-              //   const collected = await Promise.race([
-              //     message.channel.awaitMessages(
-              //       response => ["y", "yes", "n", "no"].includes(response.content.toLowerCase()) && response.author.id === tablePlayer.player.id,
-              //       { max: 1 }
-              //     ),
-              //     promptMessage.awaitReactions(
-              //       (reaction, user) => [
-              //         ActionEmoji.YES,
-              //         ActionEmoji.NO
-              //       ].includes(reaction.emoji.id)
-              //       && user.id === tablePlayer.player.id,
-              //       { max: 1 }
-              //     )
-              //   ]);
-
-              //   const response = collected.first()!;
-              //   switch ((<MessageReaction>response).emoji?.id) {
-              //     case ActionEmoji.YES:
-              //       break;
-              //     case ActionEmoji.NO:
-              //       return;
-              //     case undefined:
-              //       if (!["yes", "y"].includes((<Message>response).content.toLowerCase())) {
-              //         return;
-              //       }
-              //       break;
-              //   }
-              // }
-              tablePlayer.raiseAction(amount);
-            }
+            async ({ amount }) => tablePlayer.raiseAction(amount)
           )
           .command(
             "fold",
@@ -253,7 +220,7 @@ export default async function (message: Message) {
         await message.channel.send(await table.render());
       } catch (err) {
         await message.channel.send(await table.render());
-        await message.channel.send(`<@${tablePlayer.player.id}>, ${err.message}`);
+        await message.channel.send(`<@${tablePlayer.player.id}>, ${err.message || err}`);
       }
     }
   })();
