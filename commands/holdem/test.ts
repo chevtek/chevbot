@@ -1,7 +1,6 @@
 import { Message } from "discord.js";
 import { Table, Player } from "../../models/poker";
 import util from "util";
-import { join } from "path";
 
 export const command = "test";
 

@@ -601,7 +601,6 @@ export class TablePlayer {
     }
 }
 
-
 export class Pot {
   amount: number = 0;
   eligiblePlayers: TablePlayer[] = new Array();

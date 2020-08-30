@@ -10,7 +10,7 @@ export class Player {
     if (!bankroll) this.bankroll = 1000;
   }
   
-  static fromDiscordMessage (message: Message) {
+  public static fromDiscordMessage (message: Message) {
     return new Player(
       message.author.id,
       message.member?.displayName ?? message.author.username,
