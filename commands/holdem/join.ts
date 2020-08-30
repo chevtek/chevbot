@@ -1,7 +1,6 @@
 import { Message } from "discord.js";
 import tables from "../../poker-tables";
-// import { Player } from "../../models/poker";
-import { Player } from "../../models/poker/player";
+import { Player } from "../../models/poker";
 
 export const command = ["join [buy-in]", "j"]
 
