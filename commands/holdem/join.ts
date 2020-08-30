@@ -22,7 +22,11 @@ export async function handler ({ discord, buyIn }) {
     message.reply("There is no active Hold'em game in this channel.");
     return;
   }
-  const player = Player.fromDiscordMessage(message);
-  table.sitDown(player, buyIn || table.buyIn);
-  message.channel.send(await table.render());
+  try {
+    const player = Player.fromDiscordMessage(message);
+    table.sitDown(player, buyIn || table.buyIn);
+    message.channel.send(await table.render());
+  } catch (err) {
+    message.reply(err.message);
+  }
 }

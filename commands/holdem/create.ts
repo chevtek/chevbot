@@ -55,6 +55,8 @@ export async function handler (argv) {
       const [player] = table.players.filter(player => player.player.id === message.author.id);
       if (!player) {
         table.sitDown(Player.fromDiscordMessage(message), table.buyIn);
+      } else {
+        message.reply("You have already joined the active Hold'em table in this channel.");
       }
       return;
     }
