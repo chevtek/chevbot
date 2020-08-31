@@ -17,7 +17,7 @@ export default async function renderTable (table: Table, message: Message) {
       **Players:** ${table.players.length}
 
       > **Type \`${COMMAND_PREFIX}th sit\` to play!**
-    `)
+    `.split("\n").map(line => line.trim()).join("\n"))
     .setColor(0x00ff00)
     .attachFiles([pokerTable])
     .setImage("attachment://pokerTable.png")
@@ -32,7 +32,7 @@ export default async function renderTable (table: Table, message: Message) {
           **Amount**: ${formatMoney(pot.amount)}
           **${pot.winners ? "Winners:" : "Players:"}**
           ${players.map(player => `<@${player.id}>\n`)}
-        `
+        `.split("\n").map(line => line.trim()).join("\n")
       };
     }));
   }
