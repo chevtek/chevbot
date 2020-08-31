@@ -6,7 +6,7 @@ import { ChannelTable } from "../../models/holdem";
 const { COMMAND_PREFIX } = process.env;
 
 export default async function renderTable (table: ChannelTable, message: Message) {
-  if (!table.voiceConnection && message.member?.voice.channel) {
+  if ((!table.voiceConnection || table.voiceConnection.status === 4) && message.member?.voice.channel) {
     table.voiceConnection = await message.member.voice.channel.join();
 	} else if (table.voiceConnection && !message.member?.voice.channel) {
     table.voiceConnection.disconnect();
