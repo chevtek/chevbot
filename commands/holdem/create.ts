@@ -73,7 +73,7 @@ export async function handler (argv) {
       return;
     }
   }
-  table = new Table(minBuyIn, bigBlind, smallBlind);
+  table = new Table(minBuyIn, smallBlind, bigBlind);
   table.debug = debug;
   table.sitDown(message.author.id, buyIn || table.buyIn);
   tables[message.channel.id] = table;
