@@ -6,9 +6,10 @@ import { ChannelTable } from "../../models/holdem";
 const { COMMAND_PREFIX } = process.env;
 
 export default async function renderTable (table: ChannelTable, message: Message) {
-  if ((!table.voiceConnection || table.voiceConnection.status === 4) && message.member?.voice.channel) {
-    table.voiceConnection = await message.member.voice.channel.join();
-	} else if (table.voiceConnection && !message.member?.voice.channel) {
+  const tableCreator = message.guild?.members.cache.get(table.creatorId);
+  if ((!table.voiceConnection || table.voiceConnection.status === 4) && tableCreator?.voice.channel) {
+    table.voiceConnection = await tableCreator?.voice.channel.join();
+	} else if (table.voiceConnection && !tableCreator?.voice.channel) {
     table.voiceConnection.disconnect();
     delete table.voiceConnection;
   }

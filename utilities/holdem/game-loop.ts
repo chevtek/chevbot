@@ -270,6 +270,7 @@ export default async function (message: Message) {
 
         if (roundAfterAction !== roundBeforeAction) {
           if (!table.voiceConnection) return;
+          await new Promise((resolve) => setTimeout(resolve, 750));
           (async () => {
             const placeCardSoundFiles = await readDir("./sounds/holdem/place-card");
             const placeCardSound = placeCardSoundFiles[Math.floor(Math.random() * placeCardSoundFiles.length)];
