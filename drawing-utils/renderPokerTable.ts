@@ -289,7 +289,7 @@ export default async function (table: Table, message: Message): Promise<Buffer> 
       ctx.fillText("BB", x, y);
     };
 
-    if (table.currentRound) {
+    if (table.dealerPosition) {
       drawDealer();
     }
     if (table.currentRound === BettingRound.PRE_FLOP) {

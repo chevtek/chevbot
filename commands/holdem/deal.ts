@@ -22,6 +22,10 @@ export async function handler ({ discord }) {
     message.reply("There is no active Hold'em game in this channel.");
     return;
   }
+  if (![table.creatorId, table.dealer?.id].includes(message.author.id)){
+    message.reply("Only the current dealer or table creator can deal the cards.")
+    return;
+  }
 
   try {
     table.dealCards();

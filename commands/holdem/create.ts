@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
-import { Table } from "@chevtek/poker-engine";
 import { tables, gameLoop, renderTable } from "../../utilities/holdem";
+import { ChannelTable } from "../../models/holdem";
 
 export const command = ["create", "*"];
 
@@ -58,6 +58,9 @@ export async function handler (argv) {
         gameLoop(message);
       }
       return;
+    } else if (table.creatorId !== message.author.id) {
+      message.reply("Only the creator of the table can reset it.");
+      return;
     }
     try {
       message.reply("Are you sure? Type `CONFIRM` to reset the table.");
@@ -73,7 +76,12 @@ export async function handler (argv) {
       return;
     }
   }
-  table = tables[message.channel.id] = new Table(minBuyIn, smallBlind, bigBlind)
+  table = tables[message.channel.id] = new ChannelTable(
+    message.author.id,
+    minBuyIn,
+    smallBlind,
+    bigBlind
+  );
   table.debug = debug;
   table.sitDown(message.author.id, buyIn || table.buyIn);
   message.channel.send(await renderTable(table, message));

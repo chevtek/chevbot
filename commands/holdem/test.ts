@@ -14,7 +14,7 @@ export async function handler ({ discord }) {
 
   const debug = async (obj) => message.channel.send(util.inspect(obj), { code: "js", split: true });
 
-  const table = new ChannelTable(100, 20, 10);
+  const table = new ChannelTable(message.author.id, 100, 20, 10);
 
   table.debug = true;
 

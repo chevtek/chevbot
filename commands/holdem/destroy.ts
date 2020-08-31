@@ -16,6 +16,10 @@ export async function handler ({ discord }) {
     message.reply("There is no active Hold'em table in this channel.");
     return;
   }
+  if (table.creatorId !== message.author.id) {
+    message.reply("Only the table creator can destroy the table.");
+    return;
+  }
   try {
     message.reply("Are you sure? Type `CONFIRM` to destroy the table.");
     await message.channel.awaitMessages(
