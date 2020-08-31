@@ -46,7 +46,7 @@ export class Table {
   get actingPlayers () {
     return this.players.filter(player => !player.folded
       && player.stackSize > 0
-      && (!this.currentBet || this.currentBet && player.bet < this.currentBet)
+      && (!this.currentBet || !player.raise || (this.currentBet && player.bet < this.currentBet))
     );
   }
 
@@ -104,6 +104,8 @@ export class Table {
     const newTablePlayer = new TablePlayer(newPlayer, buyIn, this);
     if (this.currentRound) {
       newTablePlayer.folded = true;
+    } else {
+      this.cleanUp();
     }
     this.players.push(newTablePlayer);
   }
@@ -127,12 +129,7 @@ export class Table {
     }
   }
 
-  startHand () {
-    // Check for active round and throw if there is one.
-    if (this.currentRound) {
-      throw new Error("There is already an active hand!");
-    }
-
+  cleanUp () {
     // Remove players who left;
     const leavingPlayers = this.players.filter(player => player.left);
     leavingPlayers.forEach(player => this.standUp(player));
@@ -158,6 +155,15 @@ export class Table {
 
     // Empty pots.
     this.pots = [new Pot()];
+  }
+
+  startHand () {
+    // Check for active round and throw if there is one.
+    if (this.currentRound) {
+      throw new Error("There is already an active hand!");
+    }
+
+    this.cleanUp();
 
     // Ensure there are at least two players.
     if (this.players.length < 2) {
@@ -222,7 +228,7 @@ export class Table {
     }
 
     // If the player has folded or is all-in then move the action again.
-    if (this.currentActor!.folded || this.currentActor!.stackSize === 0) {
+    if (this.currentActor!.folded || this.currentActor!.stackSize === 0 || (!this.currentBet && this.actingPlayers.length === 1)) {
       this.nextAction();
     }
   }
@@ -612,13 +618,13 @@ export class TablePlayer {
       } else {
         if (this.bet === currentBet) {
           actions.push("check");
-          if (this.stackSize > currentBet) {
+          if (this.stackSize > currentBet && this.table.actingPlayers.length > 1) {
             actions.push("raise");
           }
         }
         if (this.bet < currentBet) {
           actions.push("call");
-          if (this.stackSize > currentBet && (!lastRaise || !this.raise || lastRaise >= this.raise)) {
+          if (this.stackSize > currentBet && this.table.actingPlayers.length > 1 && (!lastRaise || !this.raise || lastRaise >= this.raise)) {
             actions.push("raise");
           }
         }
