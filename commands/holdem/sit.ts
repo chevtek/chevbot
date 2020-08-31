@@ -5,10 +5,11 @@ export const command = ["sit [buy-in]", "join"];
 
 export const description = "Join the current game.";
 
-export const builder = yargs => yargs.positional("buy-in", {
-  description: "The amount of money to bring to the table. Default is the minimum buy-in for the table.",
-  type: "number"
-});
+export const builder = yargs => yargs
+  .positional("buy-in", {
+    description: "The amount of money to bring to the table. Default is the minimum buy-in for the table.",
+    type: "number"
+  });
 
 export async function handler ({ discord, buyIn }) {
   const message = discord.message as Message;

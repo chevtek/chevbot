@@ -20,13 +20,14 @@ export async function handler ({ discord }) {
 
   message.reply("Are you sure you want to leave the game? (y/n)")
   try {
-    await message.channel.awaitMessages(
+    const collected = await message.channel.awaitMessages(
       response => {
         if (response.author.id !== message.author.id) return false;
-        return ["yes", "y"].includes(response.content.toLowerCase());
+        return ["yes", "y", "no", "n"].includes(response.content.toLowerCase());
       },
       { max: 1, time: 20000, errors: ["time"] }
     );
+    if (!["yes", "y"].includes(collected.first()!.content.toLowerCase())) return;
     table.standUp(message.author.id);
     message.channel.send(await renderTable(table, message));
   } catch (err) {
