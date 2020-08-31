@@ -1,5 +1,3 @@
-import { Table } from "@chevtek/poker-engine";
+import { ChannelTable } from "../../models/holdem";
 
-const tables: {[key: string]: Table} = {};
-
-export default tables;
+export const tables: {[key: string]: ChannelTable } = {};

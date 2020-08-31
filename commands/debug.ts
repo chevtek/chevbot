@@ -15,5 +15,8 @@ export async function handler ({ discord, action, args }) {
       break;
     case "throw":
       throw new Error(args[0]);
+    case "test":
+      
+      break;
   }
 }

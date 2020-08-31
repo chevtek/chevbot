@@ -1,11 +1,17 @@
 import { MessageAttachment, MessageEmbed, Message } from "discord.js";
-import { Table } from "@chevtek/poker-engine";
 import { renderPokerTable } from "../../drawing-utils";
 import { formatMoney } from "../../utilities/holdem";
+import { ChannelTable } from "../../models/holdem";
 
 const { COMMAND_PREFIX } = process.env;
 
-export default async function renderTable (table: Table, message: Message) {
+export default async function renderTable (table: ChannelTable, message: Message) {
+  if (!table.voiceConnection && message.member?.voice.channel) {
+    table.voiceConnection = await message.member.voice.channel.join();
+	} else if (table.voiceConnection && !message.member?.voice.channel) {
+    table.voiceConnection.disconnect();
+    delete table.voiceConnection;
+  }
   const pokerTable = new MessageAttachment(
     await renderPokerTable(table, message),
     "pokerTable.png"

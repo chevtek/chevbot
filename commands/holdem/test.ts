@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
-import { Table } from "@chevtek/poker-engine";
 import { renderPokerTable } from "../../drawing-utils";
+import { ChannelTable } from "../../models/holdem";
 import util from "util";
 
 export const command = "test";
@@ -14,7 +14,7 @@ export async function handler ({ discord }) {
 
   const debug = async (obj) => message.channel.send(util.inspect(obj), { code: "js", split: true });
 
-  const table = new Table(100, 20, 10);
+  const table = new ChannelTable(100, 20, 10);
 
   table.debug = true;
 

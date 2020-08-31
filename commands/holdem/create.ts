@@ -73,9 +73,8 @@ export async function handler (argv) {
       return;
     }
   }
-  table = new Table(minBuyIn, smallBlind, bigBlind);
+  table = tables[message.channel.id] = new Table(minBuyIn, smallBlind, bigBlind)
   table.debug = debug;
   table.sitDown(message.author.id, buyIn || table.buyIn);
-  tables[message.channel.id] = table;
   message.channel.send(await renderTable(table, message));
 }
