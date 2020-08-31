@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
 import { tables, renderTable } from "../../utilities/holdem";
 
-export const command = ["join [buy-in]", "j", "sit", "sit-down"];
+export const command = ["sit [buy-in]", "join"];
 
 export const description = "Join the current game.";
 

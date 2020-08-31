@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
 import { tables, renderTable } from "../../utilities/holdem";
 
-export const command = ["leave", "stand", "stand-up"];
+export const command = ["stand", "leave"];
 
 export const description = "Leave the current game.";
 

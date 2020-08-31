@@ -16,7 +16,7 @@ export default async function renderTable (table: Table, message: Message) {
       **Buy-in:** ${formatMoney(table.buyIn)}
       **Players:** ${table.players.length}
 
-      > **Type \`${COMMAND_PREFIX}holdem join\` to play!**
+      > **Type \`${COMMAND_PREFIX}th sit\` to play!**
     `)
     .setColor(0x00ff00)
     .attachFiles([pokerTable])
