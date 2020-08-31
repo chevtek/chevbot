@@ -1,7 +1,7 @@
 {
   "name": "chevbot",
   "version": "1.0.0",
-  "description": "",
+  "description": "An extensible Discord bot application.",
   "main": "main.ts",
   "scripts": {
     "dev": "ts-node-dev --project ./tsconfig.json ./main.ts",
@@ -14,8 +14,12 @@
     "type": "git",
     "url": "git+https://github.com/chevtek/chevbot.git"
   },
-  "author": "",
-  "license": "ISC",
+  "author": {
+    "name": "Chev",
+    "email": "chev@chevtek.io",
+    "url": "https://chevtek.io"
+  },
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/chevtek/chevbot/issues"
   },
