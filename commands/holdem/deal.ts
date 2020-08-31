@@ -26,13 +26,15 @@ export async function handler ({ discord }) {
   try {
     table.dealCards();
     if (table.voiceConnection) {
-      const dealSoundFiles = await readDir("./sounds/holdem/deal");
-      for (let index = 0; index < table.players.length * 2; index++) {
-        const randomSound = dealSoundFiles[Math.floor(Math.random() * dealSoundFiles.length)];
-        await new Promise((resolve, reject) => {
-          table.voiceConnection!.play(`./sounds/holdem/deal/${randomSound}`).on("finish", resolve).on("error", reject);
-        });
-      }
+      (async () => {
+        const dealSoundFiles = await readDir("./sounds/holdem/deal");
+        for (let index = 0; index < table.players.length * 2; index++) {
+          const randomSound = dealSoundFiles[Math.floor(Math.random() * dealSoundFiles.length)];
+          await new Promise((resolve, reject) => {
+            table.voiceConnection!.play(`./sounds/holdem/deal/${randomSound}`).on("finish", resolve).on("error", reject);
+          });
+        }
+      })();
     }
     if (!table.debug) {
       // Whisper each player their cards.
