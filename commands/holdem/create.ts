@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
-import { Table } from "../../models/holdem";
-import { tables, gameLoop, renderTable, playerFromDiscordMessage } from "../../utilities/holdem";
+import { Table } from "@chevtek/poker-engine";
+import { tables, gameLoop, renderTable } from "../../utilities/holdem";
 
 export const command = ["create", "*"];
 
@@ -75,7 +75,7 @@ export async function handler (argv) {
   }
   table = new Table(minBuyIn, bigBlind, smallBlind);
   table.debug = debug;
-  table.sitDown(playerFromDiscordMessage(message), buyIn || table.buyIn);
+  table.sitDown(message.author.id, buyIn || table.buyIn);
   tables[message.channel.id] = table;
   message.channel.send(await table.render());
 }

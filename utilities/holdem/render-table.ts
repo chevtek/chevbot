@@ -1,5 +1,5 @@
 import { MessageAttachment, MessageEmbed } from "discord.js";
-import { Table } from "../../models/holdem";
+import { Table } from "@chevtek/poker-engine";
 import { renderPokerTable } from "../../drawing-utils";
 import { formatMoney } from "../../utilities/holdem";
 

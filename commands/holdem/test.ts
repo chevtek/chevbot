@@ -1,5 +1,6 @@
 import { Message } from "discord.js";
-import { Table, Player } from "../../models/holdem";
+import { Table } from "@chevtek/poker-engine";
+import { renderPokerTable } from "../../drawing-utils";
 import util from "util";
 
 export const command = "test";
@@ -17,15 +18,10 @@ export async function handler ({ discord }) {
 
   table.debug = true;
 
-  const player1 = Player.fromDiscordMessage(message);
-  const player2 = Player.fromDiscordMessage(message);
-  const player3 = Player.fromDiscordMessage(message);
-  const player4 = Player.fromDiscordMessage(message);
-  const player5 = Player.fromDiscordMessage(message);
-
-  table.sitDown(player1, 1000);
-  table.sitDown(player2, 1000);
-  table.sitDown(player3, 1000);
+  const id = message.author.id;
+  table.sitDown(id, 1000);
+  table.sitDown(id, 1000);
+  table.sitDown(id, 1000);
   // table.sitDown(player4, 1000);
   // table.sitDown(player5, 1000);
   
@@ -55,5 +51,5 @@ export async function handler ({ discord }) {
 
   await debug(table.toJson());
   // await debug(table.currentActor!.legalActions());
-  await message.channel.send(await table.render());
+  await message.channel.send(await renderPokerTable(message));
 }

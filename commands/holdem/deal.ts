@@ -6,7 +6,6 @@ export const command = ["deal", "d", "start", "begin"];
 
 export const description = "Deal the cards!";
 
-
 export async function handler ({ discord }) {
   const message = discord.message as Message;
   if (message.channel.type === "dm") {

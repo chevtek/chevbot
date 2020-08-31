@@ -1,4 +1,4 @@
-import { Table } from "../../models/holdem";
+import { Table } from "@chevtek/poker-engine";
 
 const tables: {[key: string]: Table} = {};
 
