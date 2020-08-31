@@ -253,16 +253,12 @@ export class Table {
         if (player.bet >= lowestAllInBet) {
           player.bet -= lowestAllInBet;
           currentPot.amount += lowestAllInBet;
-          if (!player.folded) {
-            currentPot.eligiblePlayers.push(player);
-          }
+          currentPot.eligiblePlayers.push(player);
           return;
         }
         // Gather bets from folded players and players who only called the lowest all-in.
         currentPot.amount += player.bet;
-        if (!player.folded) {
-          currentPot.eligiblePlayers.push(player);
-        }
+        currentPot.eligiblePlayers.push(player);
         player.bet = 0;
       });
       // Check for all-in players again.
@@ -276,9 +272,7 @@ export class Table {
     bettingPlayers.forEach(player => {
       if (player.bet === 0) return;
       currentPot.amount += player.bet;
-      if (!player.folded) {
-        currentPot.eligiblePlayers.push(player);
-      }
+      currentPot.eligiblePlayers.push(player);
       player.bet = 0;
     });
   }
@@ -393,9 +387,9 @@ export class Table {
 
     // Distribute pots and mark winners.
     this.pots.forEach(pot => {
-       pot.winners = findWinners(pot.eligiblePlayers); 
-       const award = pot.amount / pot.winners!.length;
-       pot.winners!.forEach(player => player.stackSize += award);
+      pot.winners = findWinners(pot.eligiblePlayers.filter(player => !player.folded)); 
+      const award = pot.amount / pot.winners!.length;
+      pot.winners!.forEach(player => player.stackSize += award);
     });
   }
 
