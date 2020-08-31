@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { tables } from "../../utilities/holdem";
+import { tables, renderTable } from "../../utilities/holdem";
 
 export const command = ["leave", "stand", "stand-up"];
 
@@ -28,7 +28,7 @@ export async function handler ({ discord }) {
       { max: 1, time: 20000, errors: ["time"] }
     );
     table.standUp(message.author.id);
-    message.channel.send(await table.render());
+    message.channel.send(await renderTable(table, message));
   } catch (err) {
     message.reply("No confirmation received. You are still playing!");
   }

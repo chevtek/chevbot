@@ -1,13 +1,13 @@
-import { MessageAttachment, MessageEmbed } from "discord.js";
+import { MessageAttachment, MessageEmbed, Message } from "discord.js";
 import { Table } from "@chevtek/poker-engine";
 import { renderPokerTable } from "../../drawing-utils";
 import { formatMoney } from "../../utilities/holdem";
 
 const { COMMAND_PREFIX } = process.env;
 
-export default async function renderTable (table: Table) {
+export default async function renderTable (table: Table, message: Message) {
   const pokerTable = new MessageAttachment(
-    await renderPokerTable(table),
+    await renderPokerTable(table, message),
     "pokerTable.png"
   );
   const gameEmbed = new MessageEmbed()
@@ -22,7 +22,7 @@ export default async function renderTable (table: Table) {
     .attachFiles([pokerTable])
     .setImage("attachment://pokerTable.png")
     .setFooter(`"${COMMAND_PREFIX}holdem --help" for more options.`);
-  const sidePots = table.sidePots();
+  const sidePots = table.sidePots;
   if (sidePots) {
     gameEmbed.addFields(sidePots.map((pot, index) => {
       const players = pot.winners ? pot.winners : pot.eligiblePlayers;
@@ -31,7 +31,7 @@ export default async function renderTable (table: Table) {
         value: `
           **Amount**: ${formatMoney(pot.amount)}
           **${pot.winners ? "Winners:" : "Players:"}**
-          ${players.map(player => `<@${player.player.id}>\n`)}
+          ${players.map(player => `<@${player.id}>\n`)}
         `
       };
     }));

@@ -53,7 +53,7 @@ export async function handler (argv) {
   if (table) {
     if (!reset) {
       message.reply("There is already an active Hold'em game in this channel.");
-      await message.channel.send(await renderTable(table));
+      await message.channel.send(await renderTable(table, message));
       if (table.currentRound) {
         gameLoop(message);
       }
@@ -77,5 +77,5 @@ export async function handler (argv) {
   table.debug = debug;
   table.sitDown(message.author.id, buyIn || table.buyIn);
   tables[message.channel.id] = table;
-  message.channel.send(await table.render());
+  message.channel.send(await renderTable(table, message));
 }

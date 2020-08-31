@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 import discordClient from "../../discord-client";
-import { tables, gameLoop } from "../../utilities/holdem";
+import { tables, gameLoop, renderTable } from "../../utilities/holdem";
 
 export const command = ["deal", "d", "start", "begin"];
 
@@ -20,20 +20,20 @@ export async function handler ({ discord }) {
   }
 
   try {
-    table.startHand();
+    table.dealCards();
     if (!table.debug) {
       // Whisper each player their cards.
       message.channel.send("Dealing cards!");
       for (let index = 0; index < table.players.length; index++) {
-        const tablePlayer = table.players[index];
-        tablePlayer.showCards = true;
-        const discordUser = discordClient.users.cache.get(tablePlayer.player.id);
-        const tableEmbed = await table.render();
+        const player = table.players[index];
+        player.showCards = true;
+        const discordUser = discordClient.users.cache.get(player.id);
+        const tableEmbed = await renderTable(table, message);
         tableEmbed
           .setTitle("Here's your cards!")
           .setDescription(`This message is related to your Hold'em table in the **#${message.channel.name}** channel in **${message.guild!.name}**.`);
         await discordUser!.send(tableEmbed);
-        tablePlayer.showCards = false;
+        player.showCards = false;
       }
     }
     gameLoop(message);

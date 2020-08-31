@@ -16,7 +16,7 @@ export async function handler ({ discord }) {
     message.reply("There is no active Hold'em game in this channel.");
     return;
   }
-  await message.channel.send(await renderTable(table));
+  await message.channel.send(await renderTable(table, message));
   if (table.currentRound) {
     gameLoop(message);
   }

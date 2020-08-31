@@ -27,7 +27,7 @@ export async function handler ({ discord }) {
   
   // table.players.forEach(player => player.showCards = true);
 
-  table.startHand();
+  table.dealCards();
 
   // pre-flop
   table.currentActor!.callAction();
@@ -51,5 +51,5 @@ export async function handler ({ discord }) {
 
   await debug(table.toJson());
   // await debug(table.currentActor!.legalActions());
-  await message.channel.send(await renderPokerTable(message));
+  await message.channel.send(await renderPokerTable(table, message));
 }

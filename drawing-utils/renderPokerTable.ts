@@ -1,7 +1,8 @@
 import { createCanvas, registerFont, loadImage } from "canvas";
 import { calcShapePoints, roundRect } from ".";
 import { formatMoney } from "../utilities/holdem";
-import { Table, CardSuit, Card, BettingRound, CardRank } from "../models/holdem";
+import { Table, CardSuit, Card, BettingRound, CardRank } from "@chevtek/poker-engine";
+import { Message } from "discord.js";
 
 const suitChar = (suit: CardSuit) => {
   switch (suit) {
@@ -16,7 +17,7 @@ const suitChar = (suit: CardSuit) => {
   }
 };
 
-export default async function (table: Table): Promise<Buffer> {
+export default async function (table: Table, message: Message): Promise<Buffer> {
 
   registerFont("./fonts/arial.ttf", { family: "sans-serif" });
   registerFont("./fonts/arialbd.ttf", { family: "sans-serif" });
@@ -50,7 +51,7 @@ export default async function (table: Table): Promise<Buffer> {
     ctx.fillText(card.rank === CardRank.TEN ? "10" : card.rank, x + (cardWidth/2), y + (cardHeight/3.5));
     ctx.font = "bold 45px Arial";
     ctx.fillStyle = card.color;
-    ctx.fillText(suitChar(card.suit), x + (cardWidth/2), y + (cardHeight - (cardHeight/3.5)));
+    ctx.fillText(card.suitChar, x + (cardWidth/2), y + (cardHeight - (cardHeight/3.5)));
   };
 
   const drawBackground = async () => {
@@ -92,8 +93,8 @@ export default async function (table: Table): Promise<Buffer> {
   const drawSeats = async () => {
     
     for (let index = 0; index < numberOfSeats; index++) {
-      const tablePlayer = table.players[index];
-      if (!tablePlayer) return;
+      const player = table.players[index];
+      if (!player) return;
 
       const [x, y] = seatLocations[index];
       const radius = 50;
@@ -108,19 +109,20 @@ export default async function (table: Table): Promise<Buffer> {
         avatarCtx.clip();
         avatarCtx.fillStyle = "#000000"//"#292B2F";
         avatarCtx.fillRect(0, 0, radius * 2, radius * 2);
-        const avatar = await loadImage(tablePlayer.player.avatarUrl);
+        const avatarUrl = message.guild!.members.cache.get(player.id)!.user.displayAvatarURL({ format: "png"});
+        const avatar = await loadImage(avatarUrl);
         avatarCtx.drawImage(avatar, 0, 0, radius * 2, radius * 2);
         avatarCtx.beginPath();
         avatarCtx.arc(radius, radius, radius - (padding/2), 0, Math.PI * 2, true);
         avatarCtx.closePath();
-        if (tablePlayer === table.currentActor || table.winners?.includes(tablePlayer)) {
+        if (player === table.currentActor || table.winners?.includes(player)) {
           for (let index = 0; index < padding; index++) {
             const color = Math.floor((255 / padding) * index);
             avatarCtx.strokeStyle = `rgb(0,${color},0, 1)`;
             avatarCtx.lineWidth = (padding - index) * 1.5;
             avatarCtx.stroke();
           }
-        } else if (tablePlayer.folded) {
+        } else if (player.folded) {
           for (let index = 0; index < padding; index++) {
             const color = Math.floor((100 / padding) * index);
             avatarCtx.strokeStyle = `rgb(${color},${color},${color}, 1)`;
@@ -139,7 +141,7 @@ export default async function (table: Table): Promise<Buffer> {
           avatarCtx.fillStyle = "rgba(0,0,0,0.3)";
           avatarCtx.fill();
         }
-        const avatarFinal = await loadImage(avatarCanvas.toBuffer(), `${tablePlayer.player.id}.png`);
+        const avatarFinal = await loadImage(avatarCanvas.toBuffer(), `${player.id}.png`);
         ctx.drawImage(avatarFinal, x - radius, y - radius, radius * 2, radius * 2);
       };
 
@@ -152,17 +154,17 @@ export default async function (table: Table): Promise<Buffer> {
         roundRect(nameplateX, nameplateY, nameplateWidth, nameplateHeight, cornerRadius, ctx);
         ctx.fillStyle = "rgba(0,0,0,0.7)";
         ctx.fill();
-        if (tablePlayer === table.currentActor || table.winners?.includes(tablePlayer)) {
+        if (player === table.currentActor || table.winners?.includes(player)) {
           ctx.fillStyle = "#00ff00";
-        } else if (tablePlayer.folded) {
+        } else if (player.folded) {
           ctx.fillStyle = "#999999";
         } else {
           ctx.fillStyle = "#ffffff";
         }
-        let text = tablePlayer.player.name;
+        let text = message.guild!.members.cache.get(player.id)!.displayName;
         const measureText = (text) => ctx.measureText(text).width < radius*2 - 3;
         let textFits = measureText(text);
-        ctx.font = tablePlayer === table.currentActor || table.winners?.includes(tablePlayer) ? `bold 18px Arial` : `18px Arial`;
+        ctx.font = player === table.currentActor || table.winners?.includes(player) ? `bold 18px Arial` : `18px Arial`;
         if (!textFits && text.indexOf(" ") !== -1) {
           text = text.substr(0, text.indexOf(" "));
         }
@@ -183,29 +185,29 @@ export default async function (table: Table): Promise<Buffer> {
         roundRect(budgetX, budgetY, budgetWidth, budgetHeight, cornerRadius, ctx);
         ctx.fillStyle = "rgba(0,0,0,0.7)";
         ctx.fill();
-        if (tablePlayer === table.currentActor || table.winners?.includes(tablePlayer)) {
+        if (player === table.currentActor || table.winners?.includes(player)) {
           ctx.fillStyle = "#ffff00";
-        } else if (tablePlayer.folded) {
+        } else if (player.folded) {
           ctx.fillStyle = "#999955";
         } else {
           ctx.fillStyle = "#ffffbb";
         }
-        const budgetTxt = tablePlayer.stackSize ? formatMoney(tablePlayer.stackSize) : "All In!";
-        ctx.font = tablePlayer === table.currentActor || table.winners?.includes(tablePlayer) ? `bold 18px Arial` : `18px Arial`;
+        const budgetTxt = player.stackSize ? formatMoney(player.stackSize) : "All In!";
+        ctx.font = player === table.currentActor || table.winners?.includes(player) ? `bold 18px Arial` : `18px Arial`;
         ctx.fillText(budgetTxt, budgetX + radius, budgetY + (budgetHeight/2));
       };
 
       const drawHoleCards = async () => {
         const cardsX = x - (cardWidth + (cardSpacing/2));
         const cardsY = y - (cardHeight/2);
-        const holeCards = tablePlayer.holeCards;
+        const holeCards = player.holeCards;
         if (!holeCards) return;
         for (let index = 0; index < 2; index++) {
           drawCard(cardsX + (((cardWidth + cardSpacing) * index)), cardsY, holeCards[index]);
         }
-        if (!table.winners?.includes(tablePlayer) && tablePlayer !== table.currentActor) {
+        if (!table.winners?.includes(player) && player !== table.currentActor) {
           roundRect(cardsX, cardsY, (cardWidth * 2) + cardSpacing, cardHeight, 10, ctx);
-          if (tablePlayer.folded) {
+          if (player.folded) {
             ctx.fillStyle = "rgba(0,0,0,0.85)";
           } else {
             ctx.fillStyle = "rgba(0,0,0,0.5)";
@@ -227,9 +229,9 @@ export default async function (table: Table): Promise<Buffer> {
 
       await drawAvatar();
       await drawBudget();
-      (tablePlayer.showCards || table.debug) && await drawHoleCards();
+      (player.showCards || table.debug) && await drawHoleCards();
       await drawNameplate();
-      (tablePlayer.stackSize === 0 || tablePlayer.left) && !table.currentRound && await drawBusted();
+      (player.stackSize === 0 || player.left) && !table.currentRound && await drawBusted();
     }
   };
 
@@ -346,8 +348,7 @@ export default async function (table: Table): Promise<Buffer> {
   };
 
   const drawCurrentPot = async () => {
-    const currentPot = table.currentPot();
-    if (!currentPot || currentPot.amount === 0) return;
+    if (!table.currentPot || table.currentPot.amount === 0) return;
     const cornerRadius = 10;
     const width = ((cardWidth * 5) + (cardSpacing * 4) - (cardWidth*1.5));
     const height = 50;
@@ -358,7 +359,7 @@ export default async function (table: Table): Promise<Buffer> {
     ctx.fill();
     ctx.font = "bold 30px Arial";
     ctx.fillStyle = "#ffff00";
-    ctx.fillText(formatMoney(currentPot.amount), xCenter, y + (height/2));
+    ctx.fillText(formatMoney(table.currentPot.amount), xCenter, y + (height/2));
   };
 
   const drawWinner = async () => {
@@ -376,7 +377,8 @@ export default async function (table: Table): Promise<Buffer> {
     if (table.winners!.length === 1) {
       const [winner] = table.winners!;
       const activePlayers = table.players.filter(player => !player.folded);
-      line1 = `${winner.player.name} wins!`;
+      const winnerName = message.guild!.members.cache.get(winner.id)!.displayName;
+      line1 = `${winnerName} wins!`;
       line2 = activePlayers.length > 1 ? winner.hand.name : "Opponents Folded";
     } else {
       const [firstWinner] = table.winners!;
@@ -396,19 +398,6 @@ export default async function (table: Table): Promise<Buffer> {
     ctx.fillText(line1, xCenter, y + (height/4));
     ctx.font = "30px Arial";
     ctx.fillText(line2, xCenter, y + (height - (height/4)));
-    // const arrowStartY = yCenter + cardHeight + 15;
-    // for (let index = 0; index < table.players.length; index++) {
-    //   const tablePlayer = table.players[index];
-    //   const [playerX, playerY] = seatLocations[index];
-    //   if (table.winners!.includes(tablePlayer)) {
-    //     ctx.beginPath();
-    //     ctx.moveTo(xCenter, arrowStartY);
-    //     ctx.lineTo(playerX, playerY - 60);
-    //     ctx.strokeStyle = "#00ff00";
-    //     ctx.lineWidth = 5;
-    //     ctx.stroke();
-    //   }
-    // }
   };
 
   await drawBackground();

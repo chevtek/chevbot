@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { tables } from "../../utilities/holdem";
+import { tables, renderTable } from "../../utilities/holdem";
 
 export const command = ["join [buy-in]", "j", "sit", "sit-down"];
 
@@ -23,7 +23,7 @@ export async function handler ({ discord, buyIn }) {
   }
   try {
     table.sitDown(message.author.id, buyIn || table.buyIn);
-    message.channel.send(await table.render());
+    message.channel.send(await renderTable(table, message));
   } catch (err) {
     message.reply(err.message);
   }
