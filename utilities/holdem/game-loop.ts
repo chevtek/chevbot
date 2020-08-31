@@ -2,6 +2,7 @@ import { Message, MessageReaction, Collection, CollectorFilter, AwaitMessagesOpt
 import Yargs from "yargs/yargs";
 import formatMoney from "./format-money";
 import tables from "./tables";
+import { renderTable } from ".";
 
 enum ActionEmoji {
   CHECK_OR_CALL = "749318088230699018",
@@ -77,12 +78,12 @@ export default async function (message: Message) {
 
   (async function () {
     let table = tables[message.channel.id];
-    await message.channel.send(await table.render());
+    await message.channel.send(await renderTable(table, message));
     while (table.currentRound) {
       table = tables[message.channel.id];
-      const tablePlayer = table.currentActor!;
+      const player = table.currentActor!;
       try {
-        const legalActions = tablePlayer.legalActions();
+        const legalActions = player.legalActions();
         if (legalActions.includes("bet") || legalActions.includes("raise")) {
           legalActions.push("all-in");
         }
@@ -109,10 +110,10 @@ export default async function (message: Message) {
           reactions.push(ActionEmoji.FOLD);
         }
         const prompt = await createPrompt({
-          text: `<@${tablePlayer.player.id}>, ${currentBetTxt} What would you like to do?\n You can type: ${actionsTxt}. You can also use the emoji reacts below this message.`,
+          text: `<@${player.id}>, ${currentBetTxt} What would you like to do?\n You can type: ${actionsTxt}. You can also use the emoji reacts below this message.`,
           reactions,
           awaitMessages: {
-            filter: response => response && legalActions.includes(response.content.toLowerCase().split(" ")[0]) && response.author.id === tablePlayer.player.id,
+            filter: response => response && legalActions.includes(response.content.toLowerCase().split(" ")[0]) && response.author.id === player.id,
             options: { max: 1 }
           },
           awaitReactions: {
@@ -122,7 +123,7 @@ export default async function (message: Message) {
               ActionEmoji.BET_OR_RAISE,
               ActionEmoji.FOLD
             ].includes(reaction.emoji.id)
-            && user.id === tablePlayer.player.id,
+            && user.id === player.id,
             options: { max: 1 }
           }
         });
@@ -142,7 +143,7 @@ export default async function (message: Message) {
             break;
           case ActionEmoji.BET_OR_RAISE:
             const prompt = await createPrompt({
-              text: `<@${tablePlayer.player.id}>, how much would you like to bet? \`<number|"all-in">\``,
+              text: `<@${player.id}>, how much would you like to bet? \`<number|"all-in">\``,
               reactions: [ActionEmoji.ALL_IN],
               awaitMessages: {
                 filter: response => response && response.content !== "" && ((!isNaN(response.content.replace("$", "")) || response.content.toLowerCase() === "all-in")),
@@ -150,7 +151,7 @@ export default async function (message: Message) {
               },
               awaitReactions: {
                 filter: (reaction, user) => reaction && reaction.emoji.id === ActionEmoji.ALL_IN
-                  && user.id === tablePlayer.player.id,
+                  && user.id === player.id,
                 options: { max: 1 }
               }
             });
@@ -161,13 +162,13 @@ export default async function (message: Message) {
             if (!betResponse) return;
             switch ((<MessageReaction>betResponse).emoji?.id) {
               case ActionEmoji.ALL_IN:
-                action = `raise ${tablePlayer.stackSize}`;
+                action = `raise ${player.stackSize}`;
                 break;
               case undefined:
                 const amount = (<Message>betResponse).content.toLowerCase().replace("$", "");
                 if (!amount) return;
                 if (amount === "all-in") {
-                  action = `raise ${tablePlayer.stackSize}`;
+                  action = `raise ${player.stackSize}`;
                 } else {
                   action = `raise ${amount}`;
                 }
@@ -179,10 +180,10 @@ export default async function (message: Message) {
             break;
           case undefined:
             action = (<Message>response).content.toLowerCase();
-            if (action === "all-in") action = `raise ${tablePlayer.stackSize}`;
+            if (action === "all-in") action = `raise ${player.stackSize}`;
             break;
           default:
-            await message.channel.send(`<@${tablePlayer.player.id}>, unrecognized action.`);
+            await message.channel.send(`<@${player.id}>, unrecognized action.`);
             break;
         }
 
@@ -192,31 +193,31 @@ export default async function (message: Message) {
             "bet <amount>",
             "Open the bet.",
             yargs => yargs.number("amount").required("amount"),
-            ({ amount }) => tablePlayer.betAction(amount)
+            ({ amount }) => player.betAction(amount)
           )
           .command(
             "call",
             "Call the current bet.",
             () => {},
-            async () => tablePlayer.callAction()
+            async () => player.callAction()
           )
           .command(
             "check",
             "Pass action forward if there is no bet.",
             () => {},
-            async () => tablePlayer.checkAction()
+            async () => player.checkAction()
           )
           .command(
             "raise <amount>",
             "Raise the current bet.",
             yargs => yargs.number("amount").required("amount"),
-            async ({ amount }) => tablePlayer.raiseAction(amount)
+            async ({ amount }) => player.raiseAction(amount)
           )
           .command(
             "fold",
             "Leave the hand.",
             () => {},
-            async () => tablePlayer.foldAction()
+            async () => player.foldAction()
           )
           .onFinishCommand(resolve)
           .fail((msg, err) => reject(msg || err))
@@ -225,10 +226,10 @@ export default async function (message: Message) {
 
         delete prompts[message.channel.id];
 
-        await message.channel.send(await table.render());
+        await message.channel.send(await renderTable(table, message));
       } catch (err) {
-        await message.channel.send(await table.render());
-        await message.channel.send(`<@${tablePlayer.player.id}>, ${err.message || err}`);
+        await message.channel.send(await renderTable(table, message));
+        await message.channel.send(`<@${player.id}>, ${err.message || err}`);
       }
     }
   })();
