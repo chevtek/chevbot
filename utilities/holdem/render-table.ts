@@ -21,7 +21,7 @@ export default async function renderTable (table: Table, message: Message) {
     .setColor(0x00ff00)
     .attachFiles([pokerTable])
     .setImage("attachment://pokerTable.png")
-    .setFooter(`"${COMMAND_PREFIX}holdem --help" for more options.`);
+    .setFooter(`"${COMMAND_PREFIX}th help" for more options.`);
   const sidePots = table.sidePots;
   if (sidePots) {
     gameEmbed.addFields(sidePots.map((pot, index) => {
