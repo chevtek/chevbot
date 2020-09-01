@@ -1,8 +1,8 @@
 import { createCanvas, registerFont, loadImage } from "canvas";
 import { calcShapePoints, roundRect } from ".";
 import { formatMoney } from "../utilities/holdem";
-import { Table, CardSuit, Card, BettingRound, CardRank } from "@chevtek/poker-engine";
-import { Message } from "discord.js";
+import { CardSuit, Card, BettingRound, CardRank } from "@chevtek/poker-engine";
+import { ChannelTable } from "../models/holdem";
 
 const suitChar = (suit: CardSuit) => {
   switch (suit) {
@@ -17,7 +17,7 @@ const suitChar = (suit: CardSuit) => {
   }
 };
 
-export default async function (table: Table, message: Message): Promise<Buffer> {
+export default async function (table: ChannelTable): Promise<Buffer> {
 
   registerFont("./fonts/arial.ttf", { family: "sans-serif" });
   registerFont("./fonts/arialbd.ttf", { family: "sans-serif" });
@@ -109,7 +109,7 @@ export default async function (table: Table, message: Message): Promise<Buffer> 
         avatarCtx.clip();
         avatarCtx.fillStyle = "#000000"//"#292B2F";
         avatarCtx.fillRect(0, 0, radius * 2, radius * 2);
-        const avatarUrl = message.guild!.members.cache.get(player.id)!.user.displayAvatarURL({ format: "png"});
+        const avatarUrl = table.channel.guild!.members.cache.get(player.id)!.user.displayAvatarURL({ format: "png"});
         const avatar = await loadImage(avatarUrl);
         avatarCtx.drawImage(avatar, 0, 0, radius * 2, radius * 2);
         avatarCtx.beginPath();
@@ -161,7 +161,7 @@ export default async function (table: Table, message: Message): Promise<Buffer> 
         } else {
           ctx.fillStyle = "#ffffff";
         }
-        let text = message.guild!.members.cache.get(player.id)!.displayName;
+        let text = table.channel.guild!.members.cache.get(player.id)!.displayName;
         const measureText = (text) => ctx.measureText(text).width < radius*2 - 3;
         let textFits = measureText(text);
         ctx.font = player === table.currentActor || table.winners?.includes(player) ? `bold 18px Arial` : `18px Arial`;
@@ -348,7 +348,7 @@ export default async function (table: Table, message: Message): Promise<Buffer> 
   };
 
   const drawCurrentPot = async () => {
-    if (!table.currentPot || table.currentPot.amount === 0) return;
+    if (!table.currentRound) return;
     const cornerRadius = 10;
     const width = ((cardWidth * 5) + (cardSpacing * 4) - (cardWidth*1.5));
     const height = 50;
@@ -377,7 +377,7 @@ export default async function (table: Table, message: Message): Promise<Buffer> 
     if (table.winners!.length === 1) {
       const [winner] = table.winners!;
       const activePlayers = table.players.filter(player => !player.folded);
-      const winnerName = message.guild!.members.cache.get(winner.id)!.displayName;
+      const winnerName = table.channel.guild!.members.cache.get(winner.id)!.displayName;
       line1 = `${winnerName} wins!`;
       line2 = activePlayers.length > 1 ? winner.hand.name : "Opponents Folded";
     } else {

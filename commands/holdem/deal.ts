@@ -11,6 +11,10 @@ export const description = "Deal the cards!";
 
 export async function handler ({ discord }) {
   const message = discord.message as Message;
+  // if (message.channel.type === "dm") {
+  //   message.reply("You can't run this from a DM right now. Work in progress. Please run it from the channel where the table was created.");
+  //   return;
+  // }
   let table = tables[message.channel.id];
   if (!table) {
     for (const channelId in tables) {
@@ -62,7 +66,7 @@ export async function handler ({ discord }) {
     //     player.showCards = false;
     //   }
     // }
-    gameLoop(message);
+    gameLoop(table);
   } catch (err) {
     await message.reply(err.message);
   }

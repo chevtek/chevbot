@@ -8,10 +8,10 @@ import {
 } from "discord.js";
 import Yargs from "yargs/yargs";
 import formatMoney from "./format-money";
-import { tables } from ".";
 import fs from "fs";
 import util from "util";
 import { BettingRound } from "@chevtek/poker-engine";
+import { ChannelTable } from "../../models/holdem";
 
 const readDir = util.promisify(fs.readdir);
 
@@ -43,14 +43,14 @@ interface Prompt {
 
 const prompts: {[key: string]: Prompt} = {};
 
-export default async function (message: Message) {
+export default async function (table: ChannelTable) {
 
   // Elaborate discord prompt creator. Allows chaining of previous promises.
   const createPrompt = async (oldPrompt: Prompt) => {
     if (!oldPrompt.awaitReactions && !oldPrompt.awaitMessages) {
       throw new Error("You must provide a message or reaction collector.");
     }
-    const user = message.guild!.members.cache.get(oldPrompt.userId)!.user;
+    const user = table.channel.guild!.members.cache.get(oldPrompt.userId)!.user;
     const channel = user!.dmChannel || await user!.createDM();
     const newPrompt: Prompt = Object.assign({}, oldPrompt);
     const newMessage = await channel.send(oldPrompt.text);
@@ -78,19 +78,17 @@ export default async function (message: Message) {
       newPrompt.promise.then(oldPrompt.resolve).catch(oldPrompt.reject);
     }
 
-    return prompts[message.channel.id] = newPrompt;
+    return prompts[table.channel.id] = newPrompt;
   };
 
   // If there is an existing prompt for this channel then create a new prompt and resolve the old one with it.
-  const currentPrompt = prompts[message.channel.id];
+  const currentPrompt = prompts[table.channel.id];
   if (currentPrompt) return createPrompt(currentPrompt);
 
   (async function () {
-    let table = tables[message.channel.id];
-    await table.render(message);
+    await table.render();
     let lastAction;
     while (table.currentRound) {
-      table = tables[message.channel.id];
       const player = table.currentActor!;
       try {
         const legalActions = player.legalActions();
@@ -194,12 +192,12 @@ export default async function (message: Message) {
             if (action === "all-in") action = `raise ${player.stackSize}`;
             break;
           default:
-            await message.channel.send(`<@${player.id}>, unrecognized action.`);
+            await table.channel.send(`<@${player.id}>, unrecognized action.`);
             break;
         }
 
         const roundBeforeAction = table.currentRound;
-        const playerName = message.guild!.members.cache.get(player.id)!.displayName;
+        const playerName = table.channel.guild!.members.cache.get(player.id)!.displayName;
 
         await new Promise((resolve, reject) => Yargs()
           .exitProcess(false)
@@ -313,11 +311,11 @@ export default async function (message: Message) {
           })();
         }
 
-        delete prompts[message.channel.id];
-        await table.render(message);
+        delete prompts[table.channel.id];
+        await table.render();
       } catch (err) {
-        await table.render(message);
-        await message.channel.send(`<@${player.id}>, ${err.message || err}`);
+        await table.render();
+        await table.channel.send(`<@${player.id}>, ${err.message || err}`);
       }
     }
   })();

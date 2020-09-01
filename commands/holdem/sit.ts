@@ -24,7 +24,7 @@ export async function handler ({ discord, buyIn }) {
   }
   try {
     table.sitDown(message.author.id, buyIn || table.buyIn);
-    await table.render(message);
+    await table.render();
   } catch (err) {
     message.reply(err.message);
   }

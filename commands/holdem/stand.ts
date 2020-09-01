@@ -29,7 +29,7 @@ export async function handler ({ discord }) {
     );
     if (!["yes", "y"].includes(collected.first()!.content.toLowerCase())) return;
     table.standUp(message.author.id);
-    await table.render(message);
+    await table.render();
   } catch (err) {
     message.reply("No confirmation received. You are still playing!");
   }

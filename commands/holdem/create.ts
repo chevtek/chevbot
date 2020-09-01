@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { Message, TextChannel } from "discord.js";
 import { tables, gameLoop } from "../../utilities/holdem";
 import { ChannelTable } from "../../models/holdem";
 
@@ -53,9 +53,9 @@ export async function handler (argv) {
   if (table) {
     if (!reset) {
       message.reply("There is already an active Hold'em game in this channel.");
-      await table.render(message);
+      await table.render();
       if (table.currentRound) {
-        gameLoop(message);
+        gameLoop(table);
       }
       return;
     } else if (table.creatorId !== message.author.id) {
@@ -78,11 +78,12 @@ export async function handler (argv) {
   }
   table = tables[message.channel.id] = new ChannelTable(
     message.author.id,
+    message.channel as TextChannel,
     minBuyIn,
     smallBlind,
     bigBlind
   );
   table.debug = debug;
   table.sitDown(message.author.id, buyIn || table.buyIn);
-  table.render(message);
+  table.render();
 }

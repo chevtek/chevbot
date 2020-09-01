@@ -1,15 +1,17 @@
 import { Table } from "@chevtek/poker-engine";
-import { VoiceConnection, MessageAttachment, Message, MessageEmbed } from "discord.js";
+import { VoiceConnection, MessageAttachment, Message, MessageEmbed, TextChannel } from "discord.js";
 import { renderPokerTable } from "../../drawing-utils";
 import { formatMoney } from "../../utilities/holdem";
 
 const { COMMAND_PREFIX } = process.env;
 
 export class ChannelTable extends Table {
+
   voiceConnection?: VoiceConnection
 
   constructor(
     public creatorId: string,
+    public channel: TextChannel,
     minBuyIn?: number,
     smallBlind?: number,
     bigBlind?: number
@@ -17,8 +19,8 @@ export class ChannelTable extends Table {
     super(minBuyIn, smallBlind, bigBlind);
   }
 
-  async render (message: Message) {
-    const tableCreator = message.guild?.members.cache.get(this.creatorId);
+  async render () {
+    const tableCreator = this.channel.guild?.members.cache.get(this.creatorId);
     if ((!this.voiceConnection || this.voiceConnection.status === 4) && tableCreator?.voice.channel) {
       this.voiceConnection = await tableCreator?.voice.channel.join();
     } else if (this.voiceConnection && !tableCreator?.voice.channel) {
@@ -27,7 +29,7 @@ export class ChannelTable extends Table {
     }
     const generateGameEmbed = async () => {
       const pokerTable = new MessageAttachment(
-        await renderPokerTable(this, message),
+        await renderPokerTable(this),
         "pokerTable.png"
       );
       const gameEmbed = new MessageEmbed()
@@ -58,13 +60,13 @@ export class ChannelTable extends Table {
       }
       return gameEmbed;
     };
-    await message.channel.send(await generateGameEmbed());
+    await this.channel.send(await generateGameEmbed());
     if (!this.currentRound && this.handNumber === 0) return;
     for (let index = 0; index < this.players.length; index++) {
       const player = this.players[index];
       const oldValue = player.showCards;
       player.showCards = true;
-      const user = message.guild!.members.cache.get(player.id)!.user;
+      const user = this.channel.guild!.members.cache.get(player.id)!.user;
       await user.send(await generateGameEmbed());
       player.showCards = oldValue;
     }
