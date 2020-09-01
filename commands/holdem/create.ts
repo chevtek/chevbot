@@ -24,6 +24,11 @@ export const builder = {
     description: "Specify the amount of the small blind.",
     default: 10
   },
+  "sound": {
+    description: "If false this will disable sound effects for this table.",
+    type: "boolean",
+    default: true
+  },
   "reset": {
     description: "Remove all players and reset the table.",
     type: "boolean"
@@ -41,6 +46,7 @@ export async function handler (argv) {
     buyIn,
     bigBlind,
     smallBlind,
+    sound,
     reset,
     debug
   } = argv;
@@ -83,6 +89,7 @@ export async function handler (argv) {
     smallBlind,
     bigBlind
   );
+  table.sound = sound;
   table.debug = debug;
   table.sitDown(message.author.id, buyIn || table.buyIn);
   table.render();

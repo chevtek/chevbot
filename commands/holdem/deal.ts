@@ -1,9 +1,5 @@
 import { Message } from "discord.js";
 import { tables, gameLoop } from "../../utilities/holdem";
-import fs from "fs";
-import util from "util";
-
-const readDir = util.promisify(fs.readdir);
 
 export const command = ["deal", "d", "start", "begin"];
 
@@ -40,17 +36,11 @@ export async function handler ({ discord }) {
 
   try {
     table.dealCards();
-    if (table.voiceConnection) {
-      (async () => {
-        const dealSoundFiles = await readDir("./sounds/holdem/deal");
-        for (let index = 0; index < table.players.length * 2; index++) {
-          const randomSound = dealSoundFiles[Math.floor(Math.random() * dealSoundFiles.length)];
-          await new Promise((resolve, reject) => {
-            table.voiceConnection!.play(`./sounds/holdem/deal/${randomSound}`).on("finish", resolve).on("error", reject);
-          });
-        }
-      })();
-    }
+    (async () => {
+      for (let index = 0; index < table.players.length * 2; index++) {
+        await table.playRandomSound("./sounds/holdem/deal");
+      }
+    })();
     // if (!table.debug) {
     //   // Whisper each player their cards.
     //   message.channel.send("Dealing cards!");

@@ -348,7 +348,7 @@ export default async function (table: ChannelTable): Promise<Buffer> {
   };
 
   const drawCurrentPot = async () => {
-    if (!table.currentRound) return;
+    if (!table.currentRound && !table.winners) return;
     const cornerRadius = 10;
     const width = ((cardWidth * 5) + (cardSpacing * 4) - (cardWidth*1.5));
     const height = 50;
