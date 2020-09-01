@@ -49,11 +49,10 @@ export class ChannelTable extends Table {
         gameEmbed.addFields(sidePots.map((pot, index) => {
           const players = pot.winners ? pot.winners : pot.eligiblePlayers;
           return {
-            name: `Side Pot ${index + 1}` ,
+            name: index === 0 ? "Main Pot" : `Side Pot ${index + 1}`,
             value: `
-              **Amount**: ${formatMoney(pot.amount)}
-              **${pot.winners ? "Winners:" : "Players:"}**
-              ${players.map(player => `<@${player.id}>\n`)}
+              **Amount:** ${formatMoney(pot.amount)}
+              **${pot.winners ? "Winners:" : "Players:"}** ${players.map(player => `<@${player.id}>`).join(", ")}
             `.split("\n").map(line => line.trim()).join("\n")
           };
         }));

@@ -310,11 +310,11 @@ export default async function (table: ChannelTable): Promise<Buffer> {
         ctx.fillStyle = "#ff0000";
       } else if (player.raise && table.lastRaise === player.raise && table.currentBet === player.bet) {
         ctx.fillStyle = "rgb(247,99,0)";
-      } else if (table.smallBlindPosition === index && table.currentRound === BettingRound.PRE_FLOP) {
+      } /* else if (table.smallBlindPosition === index && table.currentRound === BettingRound.PRE_FLOP) {
         ctx.fillStyle = "#0000aa";
       } else if (table.bigBlindPosition === index && table.currentRound === BettingRound.PRE_FLOP) {
         ctx.fillStyle = "#ffff00";
-      } else {
+      } */ else {
         ctx.fillStyle = "#ffffff";
       }
       ctx.fillText(bet, x, y);

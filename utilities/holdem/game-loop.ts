@@ -12,6 +12,7 @@ import fs from "fs";
 import util from "util";
 import { BettingRound } from "@chevtek/poker-engine";
 import { ChannelTable } from "../../models/holdem";
+import ytdl from "ytdl-core";
 
 const readDir = util.promisify(fs.readdir);
 
@@ -19,7 +20,7 @@ enum ActionEmoji {
   CHECK_OR_CALL = "749318088230699018",
   BET_OR_RAISE = "749318023755857932",
   FOLD = "749318088272642228",
-  ALL_IN = "749469452952666164",
+  ALL_IN = "750432704230588457",
   YES = "749412605218652381",
   NO = "749412605168189450"
 }
@@ -118,7 +119,7 @@ export default async function (table: ChannelTable) {
         }
         const prompt = await createPrompt({
           userId: player.id,
-          text: `<@${player.id}>,${lastAction && ` ${lastAction}`} ${currentBetTxt} What would you like to do?\n You can type: ${actionsTxt}. You can also use the emoji reacts below this message.`,
+          text: `<@${player.id}>,${lastAction ? ` ${lastAction}` : ""} ${currentBetTxt} What would you like to do?\n You can type: ${actionsTxt}. You can also use the emoji reacts below this message.`,
           reactions,
           awaitMessages: {
             filter: response => response && legalActions.includes(response.content.toLowerCase().split(" ")[0]) && response.author.id === player.id,
@@ -171,15 +172,15 @@ export default async function (table: ChannelTable) {
             if (!betResponse) continue;
             switch ((<MessageReaction>betResponse).emoji?.id) {
               case ActionEmoji.ALL_IN:
-                action = `raise ${player.stackSize}`;
+                action = legalActions.includes("raise") ? `raise ${player.stackSize}` : `bet ${player.stackSize}`;
                 break;
               case undefined:
                 const amount = (<Message>betResponse).content.toLowerCase().replace("$", "");
                 if (!amount) return;
                 if (amount === "all-in") {
-                  action = `raise ${player.stackSize}`;
+                  action = legalActions.includes("raise") ? `raise ${player.stackSize}` : `bet ${player.stackSize}`;
                 } else {
-                  action = `raise ${amount}`;
+                  action = legalActions.includes("raise") ? `raise ${amount}` : `bet ${amount}`;
                 }
                 break;
             }
@@ -192,8 +193,7 @@ export default async function (table: ChannelTable) {
             if (action === "all-in") action = `raise ${player.stackSize}`;
             break;
           default:
-            await table.channel.send(`<@${player.id}>, unrecognized action.`);
-            break;
+            throw new Error(`<@${player.id}>, unrecognized action.`);
         }
 
         const roundBeforeAction = table.currentRound;
@@ -223,9 +223,9 @@ export default async function (table: ChannelTable) {
               player.callAction();
               lastAction = `${playerName} called.`;
               if (table.voiceConnection) {
-                const callSoundFiles = await readDir("./sounds/holdem/call-bet-raise");
+                const callSoundFiles = await readDir("./sounds/holdem/call");
                 const randomSound = callSoundFiles[Math.floor(Math.random() * callSoundFiles.length)];
-                await new Promise((resolve, reject) => table.voiceConnection!.play(`./sounds/holdem/call-bet-raise/${randomSound}`).on("finish", resolve).on("error", reject));
+                await new Promise((resolve, reject) => table.voiceConnection!.play(`./sounds/holdem/call/${randomSound}`).on("finish", resolve).on("error", reject));
               }
             }
           )
@@ -251,9 +251,9 @@ export default async function (table: ChannelTable) {
               player.raiseAction(amount);
               lastAction = `${playerName} raised to \`$${amount}\`.`;
               if (table.voiceConnection) {
-                const raiseSoundFiles = await readDir("./sounds/holdem/call-bet-raise");
+                const raiseSoundFiles = await readDir("./sounds/holdem/bet-raise");
                 const randomSound = raiseSoundFiles[Math.floor(Math.random() * raiseSoundFiles.length)];
-                await new Promise((resolve, reject) => table.voiceConnection!.play(`./sounds/holdem/call-bet-raise/${randomSound}`).on("finish", resolve).on("error", reject));
+                await new Promise((resolve, reject) => table.voiceConnection!.play(`./sounds/holdem/bet-raise/${randomSound}`).on("finish", resolve).on("error", reject));
               }
             }
           )
@@ -278,44 +278,47 @@ export default async function (table: ChannelTable) {
 
         const roundAfterAction = table.currentRound;
 
-        if (roundAfterAction !== roundBeforeAction && table.voiceConnection) {
-          await new Promise((resolve) => setTimeout(resolve, 750));
-          (async () => {
-            const placeCardSoundFiles = await readDir("./sounds/holdem/place-card");
-            const placeCardSound = placeCardSoundFiles[Math.floor(Math.random() * placeCardSoundFiles.length)];
-            const gatherChipsSoundFiles = await readDir("./sounds/holdem/gather-chips");
-            const gatherChipsSound = gatherChipsSoundFiles[Math.floor(Math.random() * placeCardSoundFiles.length)];
-            switch (roundAfterAction) {
-              case BettingRound.FLOP:
-                await new Promise((resolve, reject) => table.voiceConnection!.play(`./sounds/holdem/gather-chips/${gatherChipsSound}`).on("finish", resolve).on("error", reject));
-                for (let index = 0; index < 3; index++) {
-                  const randomSoundFlop = placeCardSoundFiles[Math.floor(Math.random() * placeCardSoundFiles.length)];
-                  await new Promise((resolve, reject) => table.voiceConnection!.play(`./sounds/holdem/place-card/${randomSoundFlop}`).on("finish", resolve).on("error", reject));
-                }
-                break;
-              case BettingRound.TURN:
-                await new Promise((resolve, reject) => table.voiceConnection!.play(`./sounds/holdem/gather-chips/${gatherChipsSound}`).on("finish", resolve).on("error", reject));
-                await new Promise((resolve, reject) => table.voiceConnection!.play(`./sounds/holdem/place-card/${placeCardSound}`).on("finish", resolve).on("error", reject));
-                break;
-              case BettingRound.RIVER:
-                await new Promise((resolve, reject) => table.voiceConnection!.play(`./sounds/holdem/gather-chips/${gatherChipsSound}`).on("finish", resolve).on("error", reject));
-                await new Promise((resolve, reject) => table.voiceConnection!.play(`./sounds/holdem/place-card/${placeCardSound}`).on("finish", resolve).on("error", reject));
-                break;
-              default:
-                await new Promise((resolve, reject) => table.voiceConnection!.play(`./sounds/holdem/gather-chips/${gatherChipsSound}`).on("finish", resolve).on("error", reject));
-                const winSoundFiles = await readDir("./sounds/holdem/winner");
-                const randomSoundWin = winSoundFiles[Math.floor(Math.random() * winSoundFiles.length)];
-                await new Promise((resolve, reject) => table.voiceConnection!.play(`./sounds/holdem/winner/${randomSoundWin}`).on("finish", resolve).on("error", reject));
-                break;
-            }
-          })();
+        if (roundAfterAction !== roundBeforeAction) {
+          lastAction = `Betting for the ${roundAfterAction} has begun.`;
+          if (table.voiceConnection) {
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            (async () => {
+              const placeCardSoundFiles = await readDir("./sounds/holdem/place-card");
+              const placeCardSound = placeCardSoundFiles[Math.floor(Math.random() * placeCardSoundFiles.length)];
+              const gatherChipsSoundFiles = await readDir("./sounds/holdem/gather-chips");
+              const gatherChipsSound = gatherChipsSoundFiles[Math.floor(Math.random() * gatherChipsSoundFiles.length)];
+              await new Promise((resolve, reject) => table.voiceConnection!.play(`./sounds/holdem/gather-chips/${gatherChipsSound}`).on("finish", resolve).on("error", reject));
+              await new Promise((resolve) => setTimeout(resolve, 500));
+              switch (roundAfterAction) {
+                case BettingRound.FLOP:
+                  for (let index = 0; index < 3; index++) {
+                    const randomSoundFlop = placeCardSoundFiles[Math.floor(Math.random() * placeCardSoundFiles.length)];
+                    await new Promise((resolve, reject) => table.voiceConnection!.play(`./sounds/holdem/place-card/${randomSoundFlop}`).on("finish", resolve).on("error", reject));
+                  }
+                  break;
+                case BettingRound.TURN:
+                  await new Promise((resolve, reject) => table.voiceConnection!.play(`./sounds/holdem/place-card/${placeCardSound}`).on("finish", resolve).on("error", reject));
+                  break;
+                case BettingRound.RIVER:
+                  await new Promise((resolve, reject) => table.voiceConnection!.play(`./sounds/holdem/place-card/${placeCardSound}`).on("finish", resolve).on("error", reject));
+                  break;
+                default:
+                  const winSoundFiles = await readDir("./sounds/holdem/winner");
+                  const randomSoundWin = winSoundFiles[Math.floor(Math.random() * winSoundFiles.length)];
+                  await new Promise((resolve, reject) => table.voiceConnection!.play(`./sounds/holdem/winner/${randomSoundWin}`, { volume: 0.75 }).on("finish", resolve).on("error", reject));
+                  break;
+              }
+            })();
+          }
         }
 
         delete prompts[table.channel.id];
         await table.render();
       } catch (err) {
         await table.render();
-        await table.channel.send(`<@${player.id}>, ${err.message || err}`);
+        const user = table.channel.guild.members.cache.get(player.id)!.user;
+        const channel = user.dmChannel || user.createDM();
+        channel.send(`<@${player.id}>, ${err.message || err}`);
       }
     }
   })();
