@@ -88,6 +88,7 @@ export default async function (message: Message) {
   (async function () {
     let table = tables[message.channel.id];
     await table.render(message);
+    let lastAction;
     while (table.currentRound) {
       table = tables[message.channel.id];
       const player = table.currentActor!;
@@ -106,7 +107,7 @@ export default async function (message: Message) {
           return ` \`${action}\``;
         }).join();
         // Ask user what they would like to do.
-        const currentBetTxt = table.currentBet && table.currentBet > 0 ? `the current bet is \`${formatMoney(table.currentBet)}\`.` : "there is no bet yet.";
+        const currentBetTxt = table.currentBet && table.currentBet > 0 ? `The current bet is \`${formatMoney(table.currentBet)}\`.` : "There is no bet yet.";
         const reactions: ActionEmoji[] = [];
         if (legalActions.includes("check") || legalActions.includes("call")) {
           reactions.push(ActionEmoji.CHECK_OR_CALL);
@@ -119,7 +120,7 @@ export default async function (message: Message) {
         }
         const prompt = await createPrompt({
           userId: player.id,
-          text: `<@${player.id}>, ${currentBetTxt} What would you like to do?\n You can type: ${actionsTxt}. You can also use the emoji reacts below this message.`,
+          text: `<@${player.id}>,${lastAction && ` ${lastAction}`} ${currentBetTxt} What would you like to do?\n You can type: ${actionsTxt}. You can also use the emoji reacts below this message.`,
           reactions,
           awaitMessages: {
             filter: response => response && legalActions.includes(response.content.toLowerCase().split(" ")[0]) && response.author.id === player.id,
@@ -127,12 +128,12 @@ export default async function (message: Message) {
           },
           awaitReactions: {
             filter: (reaction, user) => reaction
-            && [
-              ActionEmoji.CHECK_OR_CALL,
-              ActionEmoji.BET_OR_RAISE,
-              ActionEmoji.FOLD
-            ].includes(reaction.emoji.id)
-            && user.id === player.id,
+              && [
+                ActionEmoji.CHECK_OR_CALL,
+                ActionEmoji.BET_OR_RAISE,
+                ActionEmoji.FOLD
+              ].includes(reaction.emoji.id)
+              && user.id === player.id,
             options: { max: 1 }
           }
         });
@@ -198,6 +199,7 @@ export default async function (message: Message) {
         }
 
         const roundBeforeAction = table.currentRound;
+        const playerName = message.guild!.members.cache.get(player.id)!.displayName;
 
         await new Promise((resolve, reject) => Yargs()
           .exitProcess(false)
@@ -207,6 +209,7 @@ export default async function (message: Message) {
             yargs => yargs.number("amount").required("amount"),
             async ({ amount }) => {
               player.betAction(amount);
+              lastAction = `${playerName} bet \`$${amount}\`.`;
               if (table.voiceConnection) {
                 const betSoundFiles = await readDir("./sounds/holdem/call-bet-raise");
                 const randomSound = betSoundFiles[Math.floor(Math.random() * betSoundFiles.length)];
@@ -220,6 +223,7 @@ export default async function (message: Message) {
             () => {},
             async () => {
               player.callAction();
+              lastAction = `${playerName} called.`;
               if (table.voiceConnection) {
                 const callSoundFiles = await readDir("./sounds/holdem/call-bet-raise");
                 const randomSound = callSoundFiles[Math.floor(Math.random() * callSoundFiles.length)];
@@ -233,6 +237,7 @@ export default async function (message: Message) {
             () => {},
             async () => {
               player.checkAction();
+              lastAction = `${playerName} checked.`;
               if (table.voiceConnection) {
                 const checkSoundFiles = await readDir("./sounds/holdem/check");
                 const randomSound = checkSoundFiles[Math.floor(Math.random() * checkSoundFiles.length)];
@@ -246,6 +251,7 @@ export default async function (message: Message) {
             yargs => yargs.number("amount").required("amount"),
             async ({ amount }) => {
               player.raiseAction(amount);
+              lastAction = `${playerName} raised to \`$${amount}\`.`;
               if (table.voiceConnection) {
                 const raiseSoundFiles = await readDir("./sounds/holdem/call-bet-raise");
                 const randomSound = raiseSoundFiles[Math.floor(Math.random() * raiseSoundFiles.length)];
@@ -259,6 +265,7 @@ export default async function (message: Message) {
             () => {},
             async () => {
               player.foldAction();
+              lastAction = `${playerName} folded.`;
               if (table.voiceConnection) {
                 const foldSoundFiles = await readDir("./sounds/holdem/fold");
                 const randomSound = foldSoundFiles[Math.floor(Math.random() * foldSoundFiles.length)];
