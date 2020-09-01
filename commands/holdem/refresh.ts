@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { tables, gameLoop, renderTable } from "../../utilities/holdem";
+import { tables, gameLoop } from "../../utilities/holdem";
 
 export const command = ["refresh", "resume", "r"];
 
@@ -16,7 +16,7 @@ export async function handler ({ discord }) {
     message.reply("There is no active Hold'em game in this channel.");
     return;
   }
-  await message.channel.send(await renderTable(table, message));
+  await table.render(message);
   if (table.currentRound) {
     gameLoop(message);
   }

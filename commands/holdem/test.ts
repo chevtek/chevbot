@@ -1,5 +1,4 @@
 import { Message } from "discord.js";
-import { renderPokerTable } from "../../drawing-utils";
 import { ChannelTable } from "../../models/holdem";
 import util from "util";
 
@@ -51,5 +50,5 @@ export async function handler ({ discord }) {
 
   await debug(table.toJson());
   // await debug(table.currentActor!.legalActions());
-  await message.channel.send(await renderPokerTable(table, message));
+  await table.render(message);
 }

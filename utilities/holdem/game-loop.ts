@@ -1,8 +1,14 @@
-import { Message, MessageReaction, Collection, CollectorFilter, AwaitMessagesOptions, AwaitReactionsOptions } from "discord.js";
+import {
+  Message,
+  MessageReaction,
+  Collection,
+  CollectorFilter,
+  AwaitMessagesOptions,
+  AwaitReactionsOptions
+} from "discord.js";
 import Yargs from "yargs/yargs";
 import formatMoney from "./format-money";
 import { tables } from ".";
-import { renderTable } from ".";
 import fs from "fs";
 import util from "util";
 import { BettingRound } from "@chevtek/poker-engine";
@@ -19,6 +25,7 @@ enum ActionEmoji {
 }
 
 interface Prompt { 
+  userId: string,
   text: string,
   reactions?: ActionEmoji[],
   awaitReactions?: {
@@ -29,7 +36,6 @@ interface Prompt {
     filter: CollectorFilter,
     options: AwaitMessagesOptions
   },
-  // message?: Message,
   promise?: Promise<Collection<string, Message> | Collection<string, MessageReaction>>,
   resolve?: (value?: Collection<string, Message> | Collection<string, MessageReaction>) => void,
   reject?: (reason?: any) => void
@@ -44,13 +50,15 @@ export default async function (message: Message) {
     if (!oldPrompt.awaitReactions && !oldPrompt.awaitMessages) {
       throw new Error("You must provide a message or reaction collector.");
     }
+    const user = message.guild!.members.cache.get(oldPrompt.userId)!.user;
+    const channel = user!.dmChannel || await user!.createDM();
     const newPrompt: Prompt = Object.assign({}, oldPrompt);
-    const newMessage = await message.channel.send(oldPrompt.text);
+    const newMessage = await channel.send(oldPrompt.text);
     if (oldPrompt.reactions) {
       oldPrompt.reactions.forEach(reaction => newMessage.react(reaction));
     }
     newPrompt.promise = new Promise<Collection<string, Message> | Collection<string, MessageReaction>>((resolve, reject) => {
-      let discordPromise;
+      let discordPromise: Promise<Collection<string, Message> | Collection<string, MessageReaction>>;
       if (oldPrompt.awaitMessages && oldPrompt.awaitReactions) {
         discordPromise = Promise.race([
           newMessage.channel.awaitMessages(oldPrompt.awaitMessages.filter, oldPrompt.awaitMessages.options),
@@ -61,11 +69,7 @@ export default async function (message: Message) {
       } else if (oldPrompt.awaitReactions) {
         discordPromise = newMessage.awaitReactions(oldPrompt.awaitReactions.filter, oldPrompt.awaitReactions.options);
       }
-      discordPromise.then(resolve).catch(reject);
-      // if (prompt.resolve) {
-      //   discordPromise.then(prompt.resolve).catch(prompt.reject);
-      //   // prompt.message!.delete();
-      // }
+      discordPromise!.then(resolve).catch(reject);
       newPrompt.resolve = resolve;
       newPrompt.reject = reject;
     });
@@ -83,7 +87,7 @@ export default async function (message: Message) {
 
   (async function () {
     let table = tables[message.channel.id];
-    await message.channel.send(await renderTable(table, message));
+    await table.render(message);
     while (table.currentRound) {
       table = tables[message.channel.id];
       const player = table.currentActor!;
@@ -115,6 +119,7 @@ export default async function (message: Message) {
           reactions.push(ActionEmoji.FOLD);
         }
         const prompt = await createPrompt({
+          userId: player.id,
           text: `<@${player.id}>, ${currentBetTxt} What would you like to do?\n You can type: ${actionsTxt}. You can also use the emoji reacts below this message.`,
           reactions,
           awaitMessages: {
@@ -148,6 +153,7 @@ export default async function (message: Message) {
             break;
           case ActionEmoji.BET_OR_RAISE:
             const prompt = await createPrompt({
+              userId: player.id,
               text: `<@${player.id}>, how much would you like to bet? \`<number|"all-in">\``,
               reactions: [ActionEmoji.ALL_IN],
               awaitMessages: {
@@ -303,9 +309,9 @@ export default async function (message: Message) {
         }
 
         delete prompts[message.channel.id];
-        await message.channel.send(await renderTable(table, message));
+        await table.render(message);
       } catch (err) {
-        await message.channel.send(await renderTable(table, message));
+        await table.render(message);
         await message.channel.send(`<@${player.id}>, ${err.message || err}`);
       }
     }
