@@ -113,7 +113,6 @@ export default async function (message: Message) {
         }
         if (legalActions.includes("bet") || legalActions.includes("raise")) {
           reactions.push(ActionEmoji.BET_OR_RAISE);
-          legalActions.push("all-in");
         }
         if (legalActions.includes("fold")) {
           reactions.push(ActionEmoji.FOLD);
@@ -142,7 +141,7 @@ export default async function (message: Message) {
 
         const response = collected.first()!;
         let action: string;
-        if (!response) return;
+        if (!response) continue;
         switch ((<MessageReaction>response)?.emoji?.id) {
           case ActionEmoji.CHECK_OR_CALL:
             if (legalActions.includes("check")) {
@@ -170,7 +169,7 @@ export default async function (message: Message) {
             const collected = await prompt.promise!;
 
             const betResponse = collected.first()!;
-            if (!betResponse) return;
+            if (!betResponse) continue;
             switch ((<MessageReaction>betResponse).emoji?.id) {
               case ActionEmoji.ALL_IN:
                 action = `raise ${player.stackSize}`;
@@ -274,8 +273,7 @@ export default async function (message: Message) {
 
         const roundAfterAction = table.currentRound;
 
-        if (roundAfterAction !== roundBeforeAction) {
-          if (!table.voiceConnection) return;
+        if (roundAfterAction !== roundBeforeAction && table.voiceConnection) {
           await new Promise((resolve) => setTimeout(resolve, 750));
           (async () => {
             const placeCardSoundFiles = await readDir("./sounds/holdem/place-card");

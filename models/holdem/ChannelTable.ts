@@ -62,10 +62,11 @@ export class ChannelTable extends Table {
     if (!this.currentRound && this.handNumber === 0) return;
     for (let index = 0; index < this.players.length; index++) {
       const player = this.players[index];
+      const oldValue = player.showCards;
       player.showCards = true;
       const user = message.guild!.members.cache.get(player.id)!.user;
       await user.send(await generateGameEmbed());
-      player.showCards = false;
+      player.showCards = oldValue;
     }
   }
 }
