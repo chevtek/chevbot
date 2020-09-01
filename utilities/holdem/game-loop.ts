@@ -305,7 +305,7 @@ export default async function (table: ChannelTable) {
                 default:
                   const winSoundFiles = await readDir("./sounds/holdem/winner");
                   const randomSoundWin = winSoundFiles[Math.floor(Math.random() * winSoundFiles.length)];
-                  await new Promise((resolve, reject) => table.voiceConnection!.play(`./sounds/holdem/winner/${randomSoundWin}`, { volume: 0.75 }).on("finish", resolve).on("error", reject));
+                  await new Promise((resolve, reject) => table.voiceConnection!.play(`./sounds/holdem/winner/${randomSoundWin}`).on("finish", resolve).on("error", reject));
                   break;
               }
             })();
