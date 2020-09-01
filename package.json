@@ -31,7 +31,7 @@
     "ts-node-dev": "^1.0.0-pre.61"
   },
   "dependencies": {
-    "@chevtek/poker-engine": "^1.0.8",
+    "@chevtek/poker-engine": "^1.0.9",
     "@discordjs/opus": "^0.3.2",
     "canvas": "^2.6.1",
     "discord.js": "^12.2.0",
