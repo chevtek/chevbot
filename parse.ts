@@ -46,7 +46,7 @@ export default (cmdInput, context) => {
       const { help } = argv;
       if (output) {
         if (help) {
-        const cmdName = argv._[0]?.charAt(0).toUpperCase().concat(argv._[0]?.slice(1));
+          const cmdName = argv._[0]?.charAt(0).toUpperCase().concat(argv._[0]?.slice(1));
           const helpEmbed = new MessageEmbed({
             title: `${ cmdName ?? "Chevbot"} Help`,
             color: 0x00ff00,

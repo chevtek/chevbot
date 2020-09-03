@@ -3,7 +3,6 @@ import config from "../config";
 
 const {
   COSMOS_DATABASE_ID,
-  COSMOS_PARTITION_KEY,
   COSMOS_PRIMARY_KEY,
   COSMOS_URI
 } = config;

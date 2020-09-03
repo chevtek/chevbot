@@ -9,9 +9,9 @@ import { createCanvas, registerFont, loadImage } from "canvas";
 import moment from "moment";
 import parse from "./parse";
 import discordClient from "./discord-client";
-import { handler as listChannels } from "./commands/channels";
 import config from "./config";
 import { initializeDb } from "./db";
+import { handler as listChannels } from "./commands/channels";
 
 const readDir = util.promisify(fs.readdir);
 
