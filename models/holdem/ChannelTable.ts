@@ -153,9 +153,9 @@ export class ChannelTable extends Table {
       await user.send(await generateGameEmbed());
       return;
     }
-    for (let index = 0; index < this.players.length; index++) {
-      const player = this.players[index];
-      if (!player) return;
+    for (let index = 0; index < this.activePlayers.length; index++) {
+      const player = this.activePlayers[index];
+      if (!player) continue;
       const oldValue = player.showCards;
       player.showCards = true;
       const user = this.channel.guild!.members.cache.get(player.id)!.user;

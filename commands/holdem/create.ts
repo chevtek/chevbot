@@ -77,6 +77,8 @@ export async function handler (argv) {
         },
         { max: 1, time: 20000, errors: ["time"] }
       );
+      table.prompt?.resolve?.();
+      await table.deleteFromDb();
     } catch (err) {
       message.reply("No confirmation received. The table was not reset.");
       return;

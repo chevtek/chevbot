@@ -32,6 +32,7 @@ export async function handler ({ discord }) {
       },
       { max: 1, time: 15000, errors: ["time"] }
     );
+    table.prompt?.resolve?.();
     await table.deleteFromDb();
     message.reply("The Hold'em table for this channel has been deleted.");
   } catch (err) {
