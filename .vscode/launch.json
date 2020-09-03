@@ -12,8 +12,8 @@
         "<node_internals>/**"
       ],
       "restart": true,
-      "runtimeExecutable": "ts-node-dev",
-      "args": ["--", "."],
+      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/ts-node-dev",
+      "args": ["--project", "./tsconfig.json", "."],
       "outFiles": [
         "${workspaceFolder}/**/*.js"
       ]

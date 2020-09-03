@@ -1,3 +1,6 @@
+import fs from "fs";
+import util from "util";
+import path from "path";
 import {
   VoiceConnection,
   MessageAttachment,
@@ -11,12 +14,12 @@ import { Table } from "@chevtek/poker-engine";
 import { renderPokerTable } from "../../drawing-utils";
 import { formatMoney } from "../../utilities/holdem";
 import { Prompt } from "./Prompt";
-import fs from "fs";
-import util from "util";
-import path from "path";
+import config from "../../config";
+import db from "../../db";
 
 const readDir = util.promisify(fs.readdir);
-const { COMMAND_PREFIX } = process.env;
+
+const { COMMAND_PREFIX } = config;
 
 export class ChannelTable extends Table {
 
@@ -40,7 +43,7 @@ export class ChannelTable extends Table {
     }
     const user = this.channel.guild!.members.cache.get(prompt.userId)!.user;
     const channel = user!.dmChannel || await user!.createDM();
-    const newPrompt: Prompt = Object.assign({}, prompt);
+    const newPrompt: Prompt = {...prompt};
     const newMessage = await channel.send(prompt.text);
     if (prompt.reactions) {
       prompt.reactions.forEach(reaction => newMessage.react(reaction));
@@ -142,5 +145,49 @@ export class ChannelTable extends Table {
       await user.send(await generateGameEmbed());
       player.showCards = oldValue;
     }
+  }
+
+  async saveToDb() {
+    const { pokerTables } = db;
+    if (!pokerTables) throw new Error("Unable to save poker table. No database container.");
+    return await pokerTables.items.create({
+      bigBlind: this.bigBlind,
+      bigBlindPosition: this.bigBlindPosition,
+      buyIn: this.buyIn,
+      channelId: this.channel.id,
+      communityCards: this.communityCards.map(card => ({
+        rank: card.rank,
+        suit: card.suit
+      })),
+      creatorId: this.creatorId,
+      currentBet: this.currentBet,
+      currentPosition: this.currentPosition,
+      currentRound: this.currentRound,
+      dealerPosition: this.dealerPosition,
+      debug: this.debug,
+      deck: this.deck,
+      handNumber: this.handNumber,
+      lastPosition: this.lastPosition,
+      lastRaise: this.lastRaise,
+      players: this.players.map(player => ({
+        bet: player.bet,
+        folded: player.folded,
+        holeCards: player.holeCards,
+        id: player.id,
+        left: player.left,
+        raise: player.raise,
+        showCards: player.showCards,
+        stackSize: player.stackSize
+      })),
+      pots: this.pots.map(pot => ({
+        amount: pot.amount,
+        eligiblePlayers: pot.eligiblePlayers.map(player => player.id),
+        winners: pot.winners?.map(player => player.id)
+      })),
+      smallBlind: this.smallBlind,
+      smallBlindPosition: this.smallBlindPosition,
+      sound: this.sound,
+      winners: this.winners?.map(player => player.id)
+    });
   }
 }

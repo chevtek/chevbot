@@ -1,6 +1,7 @@
 import { Client as DiscordClient } from "discord.js";
+import config from "./config";
 
-const { DISCORD_BOT_TOKEN } = process.env;
+const { DISCORD_BOT_TOKEN } = config;
 
 const client = new DiscordClient();
 

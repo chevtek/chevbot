@@ -1,7 +1,8 @@
 import Yargs from "yargs/yargs";
-import { MessageEmbed, Message } from "discord.js";
+import { MessageEmbed } from "discord.js";
+import config from "./config";
 
-const { COMMAND_PREFIX } = process.env;
+const { COMMAND_PREFIX } = config;
 
 const onFail = (err, channel) => {
   const errorEmbed = new MessageEmbed()
