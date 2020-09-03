@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { tables } from "../../utilities/holdem";
+import { ChannelTable } from "../../models/holdem";
 
 export const command = ["stand", "leave"];
 
@@ -12,7 +12,7 @@ export async function handler ({ discord }) {
     return;
   }
 
-  const table = tables[message.channel.id];
+  const table = await ChannelTable.findByChannelId(message.channel.id);
   if (!table) {
     message.reply("There is no active Hold'em game in this channel.");
     return;
@@ -29,7 +29,7 @@ export async function handler ({ discord }) {
     );
     if (!["yes", "y"].includes(collected.first()!.content.toLowerCase())) return;
     table.standUp(message.author.id);
-    await table.render();
+    await Promise.all([table.saveToDb(), table.render()]);
   } catch (err) {
     message.reply("No confirmation received. You are still playing!");
   }

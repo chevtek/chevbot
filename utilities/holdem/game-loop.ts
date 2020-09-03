@@ -9,11 +9,12 @@ import { ChannelTable, ActionEmoji } from "../../models/holdem";
 
 export default async function (table: ChannelTable) {
 
+  await table.render();
+
   // If there is an existing prompt for this channel then create a new prompt and resolve the old one with it.
   if (table.prompt) return table.createPrompt(table.prompt);
 
   (async function () {
-    await table.render();
     let lastAction;
     while (table.currentRound) {
       const player = table.currentActor!;
@@ -187,10 +188,6 @@ export default async function (table: ChannelTable) {
           lastAction = `Betting for the ${roundAfterAction} has begun.`;
         }
 
-        // Re-render table and delete any active prompt.
-        delete table.prompt;
-        await table.render();
-
         // Play post-round sound effects.
         if (table.voiceConnection && roundAfterAction !== roundBeforeAction) {
           await new Promise((resolve) => setTimeout(resolve, 500));
@@ -215,6 +212,10 @@ export default async function (table: ChannelTable) {
             }
           })();
         }
+
+        // Re-render table and delete any active prompt.
+        delete table.prompt;
+        await Promise.all([table.saveToDb(), table.render()]);
 
       } catch (err) {
         await table.render();

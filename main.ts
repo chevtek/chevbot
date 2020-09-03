@@ -23,8 +23,6 @@ const {
 
 (async () => {
 
-  await initializeDb();
-
   discordClient.on("ready", () => {
     discordClient.user?.setActivity({ name: `for cmds | ${COMMAND_PREFIX}help`, type: "WATCHING" });
     console.log(`Chevbot online [${moment()}]`);
@@ -95,6 +93,8 @@ const {
       console.error(err);
     }
   });
+
+  await initializeDb();
 
   discordClient.on("message", message => {
     const { content, author } = message;

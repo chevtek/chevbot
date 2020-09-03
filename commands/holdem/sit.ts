@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { tables } from "../../utilities/holdem";
+import { ChannelTable } from "../../models/holdem";
 
 export const command = ["sit [buy-in]", "join"];
 
@@ -17,14 +17,14 @@ export async function handler ({ discord, buyIn }) {
     message.reply("This command can only be run from a channel or server.");
     return;
   }
-  const table = tables[message.channel.id];
+  const table = await ChannelTable.findByChannelId(message.channel.id);
   if (!table) {
     message.reply("There is no active Hold'em game in this channel.");
     return;
   }
   try {
     table.sitDown(message.author.id, buyIn || table.buyIn);
-    await table.render();
+    await Promise.all([table.saveToDb(), table.render()]);
   } catch (err) {
     message.reply(err.message);
   }

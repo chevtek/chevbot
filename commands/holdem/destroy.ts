@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { tables } from "../../utilities/holdem";
+import { ChannelTable } from "../../models/holdem";
 
 export const command = ["destroy", "finish", "end", "delete"];
 
@@ -11,7 +11,7 @@ export async function handler ({ discord }) {
     message.reply("This command can only be run from a channel on a server.");
     return;
   }
-  const table = tables[message.channel.id];
+  const table = await ChannelTable.findByChannelId(message.channel.id);
   if (!table) {
     message.reply("There is no active Hold'em table in this channel.");
     return;
@@ -29,7 +29,7 @@ export async function handler ({ discord }) {
       },
       { max: 1, time: 15000, errors: ["time"] }
     );
-    delete tables[message.channel.id];
+    await table.deleteFromDb();
     message.reply("The Hold'em table for this channel has been deleted.");
   } catch (err) {
     message.reply("No confirmation received. The table was not destroyed.");

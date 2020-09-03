@@ -8,14 +8,16 @@ import {
   MessageEmbed,
   TextChannel,
   Collection,
-  MessageReaction
+  MessageReaction,
+  Channel
 } from "discord.js";
-import { Table } from "@chevtek/poker-engine";
+import { Table, Card, Player, Pot } from "@chevtek/poker-engine";
 import { renderPokerTable } from "../../drawing-utils";
 import { formatMoney } from "../../utilities/holdem";
 import { Prompt } from "./Prompt";
 import config from "../../config";
 import db from "../../db";
+import discordClient from "../../discord-client";
 
 const readDir = util.promisify(fs.readdir);
 
@@ -147,14 +149,14 @@ export class ChannelTable extends Table {
     }
   }
 
-  async saveToDb() {
+  saveToDb() {
     const { pokerTables } = db;
     if (!pokerTables) throw new Error("Unable to save poker table. No database container.");
-    return await pokerTables.items.create({
+    const doc = {
+      id: this.channel.id,
       bigBlind: this.bigBlind,
       bigBlindPosition: this.bigBlindPosition,
       buyIn: this.buyIn,
-      channelId: this.channel.id,
       communityCards: this.communityCards.map(card => ({
         rank: card.rank,
         suit: card.suit
@@ -165,14 +167,20 @@ export class ChannelTable extends Table {
       currentRound: this.currentRound,
       dealerPosition: this.dealerPosition,
       debug: this.debug,
-      deck: this.deck,
+      deck: this.deck.map(card => ({
+        rank: card.rank,
+        suit: card.suit
+      })),
       handNumber: this.handNumber,
       lastPosition: this.lastPosition,
       lastRaise: this.lastRaise,
       players: this.players.map(player => ({
         bet: player.bet,
         folded: player.folded,
-        holeCards: player.holeCards,
+        holeCards: player.holeCards?.map(card => ({
+          rank: card.rank,
+          suit: card.suit
+        })),
         id: player.id,
         left: player.left,
         raise: player.raise,
@@ -188,6 +196,70 @@ export class ChannelTable extends Table {
       smallBlindPosition: this.smallBlindPosition,
       sound: this.sound,
       winners: this.winners?.map(player => player.id)
+    };
+    return pokerTables.items.upsert(doc);
+  }
+
+  deleteFromDb () {
+    const { pokerTables } = db;
+    if (!pokerTables) throw new Error("Unable to delete table. No container found.");
+    return pokerTables.item(this.channel.id).delete();
+  }
+
+  populateFromDoc(doc: any) {
+    const players = doc.players.map(data => {
+      const player = new Player(data.id, data.stackSize, this);
+      Object.assign(player, data, {
+        holeCards: data.holeCards?.map(card => new Card(card.rank, card.suit))
+      });
+      return player;
     });
+    Object.assign(this, doc, {
+      communityCards: doc.communityCards
+        .map(card => new Card(card.rank, card.suit)),
+      deck: doc.deck
+        .map(card => new Card(card.rank, card.suit)),
+      players,
+      pots: doc.pots.map(data => {
+        const pot = new Pot();
+        pot.amount = data.amount;
+        pot.eligiblePlayers = data.eligiblePlayers
+          .map(playerId => players
+            .filter(player => player.id === playerId)[0]);
+        pot.winners = data.winners
+          ?.map(playerId => players
+            .filter(player => player.id === playerId)[0]);
+        return pot;
+      }),
+      winners: doc.winners
+        ?.map(playerId => players
+          .filter(player => player.id === playerId)[0])
+    });
+    return this;
+  }
+
+  static async findByChannelId(channelId: string) {
+    const { pokerTables } = db;
+    if (!pokerTables) throw new Error("Unable to find table. No poker table container.");
+    const { resource: doc } = await pokerTables.item(channelId).read();
+    if (!doc) return;
+    const channel = discordClient.channels.cache.get(doc.id)! as TextChannel;
+    const table = new ChannelTable(doc.creatorId, channel);
+    return table.populateFromDoc(doc);
+  }
+
+  static async findByCreatorId(creatorId: string) {
+    const { pokerTables } = db;
+    if (!pokerTables) throw new Error("Unable to find table. No poker table container.");
+    const { resources: [doc] } = await pokerTables.items.query({
+      query: "SELECT * FROM root r WHERE r.creatorId=@creatorId",
+      parameters: [
+        { name: "@creatorId", value: creatorId }
+      ]
+    }).fetchAll();
+    if (!doc) return;
+    const channel = discordClient.channels.cache.get(doc.id)! as TextChannel;
+    const table = new ChannelTable(doc.creatorId, channel);
+    return table.populateFromDoc(doc);
   }
 }

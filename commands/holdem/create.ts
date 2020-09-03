@@ -1,5 +1,5 @@
 import { Message, TextChannel } from "discord.js";
-import { tables, gameLoop } from "../../utilities/holdem";
+import { gameLoop } from "../../utilities/holdem";
 import { ChannelTable } from "../../models/holdem";
 
 export const command = ["create", "*"];
@@ -55,7 +55,7 @@ export async function handler (argv) {
     message.reply("This command can only be run from a channel on a server.");
     return;
   }
-  let table = tables[message.channel.id];
+  let table = await ChannelTable.findByChannelId(message.channel.id);
   if (table) {
     if (!reset) {
       message.reply("There is already an active Hold'em game in this channel.");
@@ -82,7 +82,7 @@ export async function handler (argv) {
       return;
     }
   }
-  table = tables[message.channel.id] = new ChannelTable(
+  table = new ChannelTable(
     message.author.id,
     message.channel as TextChannel,
     minBuyIn,
@@ -92,5 +92,5 @@ export async function handler (argv) {
   table.sound = sound;
   table.debug = debug;
   table.sitDown(message.author.id, buyIn || table.buyIn);
-  table.render();
+  await Promise.all([table.saveToDb(), table.render()]);
 }
