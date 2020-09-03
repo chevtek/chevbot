@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@azure/cosmos": "^3.9.1",
-    "@chevtek/poker-engine": "^1.0.22",
+    "@chevtek/poker-engine": "^1.0.23",
     "@discordjs/opus": "^0.3.2",
     "canvas": "^2.6.1",
     "discord.js": "^12.2.0",
