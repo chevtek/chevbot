@@ -30,7 +30,7 @@ export async function handler ({ discord, buyIn, seatNumber }) {
     return;
   }
   const existingTable = await ChannelTable.findByCreatorId(message.author.id);
-  if (existingTable) {
+  if (existingTable && existingTable.channel.id !== table.channel.id) {
     message.reply(`You have already joined a table. Use \`${COMMAND_PREFIX}th stand\` from your Chevbot PM to leave your active table.`);
     return;
   }
