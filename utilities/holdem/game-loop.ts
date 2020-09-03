@@ -215,7 +215,9 @@ export default async function (table: ChannelTable) {
 
         // Re-render table and delete any active prompt.
         delete table.prompt;
-        await Promise.all([table.saveToDb(), table.render()]);
+        await table.render();
+        if (table.winners) table.cleanUp();
+        await table.saveToDb();
 
       } catch (err) {
         await table.render();

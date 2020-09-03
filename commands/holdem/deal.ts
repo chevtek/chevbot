@@ -29,7 +29,7 @@ export async function handler ({ discord }) {
     table.dealCards();
     await table.saveToDb();
     (async () => {
-      for (let index = 0; index < table.players.length * 2; index++) {
+      for (let index = 0; index < table.activePlayers.length * 2; index++) {
         await table.playRandomSound("./sounds/holdem/deal");
       }
     })();

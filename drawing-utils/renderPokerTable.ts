@@ -3,6 +3,9 @@ import { calcShapePoints, roundRect } from ".";
 import { formatMoney } from "../utilities/holdem";
 import { CardSuit, Card, BettingRound, CardRank } from "@chevtek/poker-engine";
 import { ChannelTable } from "../models/holdem";
+import config from "../config";
+
+const { COMMAND_PREFIX } = config;
 
 const suitChar = (suit: CardSuit) => {
   switch (suit) {
@@ -87,17 +90,31 @@ export default async function (table: ChannelTable): Promise<Buffer> {
     }
     ctx.fillStyle = "rgba(0,0,0,0.25)";
     ctx.font = "bold 500px Arial";
-    ctx.fillText(suitChar(CardSuit.CLUB), xCenter, yCenter - 35);
+    ctx.fillText(suitChar(CardSuit.CLUB)!, xCenter, yCenter - 35);
   };
 
   const drawSeats = async () => {
     
     for (let index = 0; index < numberOfSeats; index++) {
       const player = table.players[index];
-      if (!player) return;
-
       const [x, y] = seatLocations[index];
       const radius = 50;
+
+      if (player === null) {
+        // Draw join message.
+        const cornerRadius = 10;
+        const joinMsgWidth = (radius*2);
+        const joinMsgHeight = (radius);
+        const joinMsgX = x - radius;
+        const joinMsgY = y - (joinMsgHeight/2);
+        roundRect(joinMsgX, joinMsgY, joinMsgWidth, joinMsgHeight, cornerRadius, ctx);
+        ctx.fillStyle = "rgba(0,0,0,0.7)";
+        ctx.fill();
+        ctx.fillStyle = "rgba(255,255,255,0.5";
+        ctx.font = "25px Arial";
+        ctx.fillText(`${COMMAND_PREFIX}th sit ${index + 1}`, x, y);
+        continue;
+      }
 
       const drawAvatar = async () => {
         const padding = 7;
@@ -302,7 +319,7 @@ export default async function (table: ChannelTable): Promise<Buffer> {
     for (let index = 0; index < table.players.length; index++) {
       const [x, y] = betLocations[index];
       const player = table.players[index];
-      if (player.bet === 0) continue;
+      if (!player || player.bet === 0) continue;
       const bet = formatMoney(player.bet);
       ctx.font = "bold 25px Arial";
 
@@ -376,7 +393,7 @@ export default async function (table: ChannelTable): Promise<Buffer> {
     let line1, line2;
     if (table.winners!.length === 1) {
       const [winner] = table.winners!;
-      const activePlayers = table.players.filter(player => !player.folded);
+      const activePlayers = table.activePlayers;
       const winnerName = table.channel.guild!.members.cache.get(winner.id)!.displayName;
       line1 = `${winnerName} wins!`;
       line2 = activePlayers.length > 1 ? winner.hand.name : "Opponents Folded";

@@ -145,13 +145,17 @@ export class ChannelTable extends Table {
     await this.channel.send(await generateGameEmbed());
     if (!this.currentRound && this.handNumber === 0) return;
     if (this.debug) {
-      this.players.forEach(player => player.showCards = true);
+      this.players.forEach(player => {
+        if (!player) return;
+        player.showCards = true
+      });
       const user = this.channel.guild!.members.cache.get(this.creatorId)!.user;
       await user.send(await generateGameEmbed());
       return;
     }
     for (let index = 0; index < this.players.length; index++) {
       const player = this.players[index];
+      if (!player) return;
       const oldValue = player.showCards;
       player.showCards = true;
       const user = this.channel.guild!.members.cache.get(player.id)!.user;
@@ -185,19 +189,20 @@ export class ChannelTable extends Table {
       handNumber: this.handNumber,
       lastPosition: this.lastPosition,
       lastRaise: this.lastRaise,
-      players: this.players.map(player => ({
-        bet: player.bet,
-        folded: player.folded,
-        holeCards: player.holeCards?.map(card => ({
-          rank: card.rank,
-          suit: card.suit
+      players: this.players
+        .map(player => player === null ? null : ({
+          bet: player.bet,
+          folded: player.folded,
+          holeCards: player.holeCards?.map(card => ({
+            rank: card.rank,
+            suit: card.suit
+          })),
+          id: player.id,
+          left: player.left,
+          raise: player.raise,
+          showCards: player.showCards,
+          stackSize: player.stackSize
         })),
-        id: player.id,
-        left: player.left,
-        raise: player.raise,
-        showCards: player.showCards,
-        stackSize: player.stackSize
-      })),
       pots: this.pots.map(pot => ({
         amount: pot.amount,
         eligiblePlayers: pot.eligiblePlayers.map(player => player.id),
@@ -219,6 +224,7 @@ export class ChannelTable extends Table {
 
   populateFromDoc(doc: any) {
     const players = doc.players.map(data => {
+      if (data === null) return null;
       const player = new Player(data.id, data.stackSize, this);
       Object.assign(player, data, {
         holeCards: data.holeCards?.map(card => new Card(card.rank, card.suit))
@@ -236,15 +242,15 @@ export class ChannelTable extends Table {
         pot.amount = data.amount;
         pot.eligiblePlayers = data.eligiblePlayers
           .map(playerId => players
-            .filter(player => player.id === playerId)[0]);
+            .filter(player => player && player.id === playerId)[0]);
         pot.winners = data.winners
           ?.map(playerId => players
-            .filter(player => player.id === playerId)[0]);
+            .filter(player => player && player.id === playerId)[0]);
         return pot;
       }),
       winners: doc.winners
         ?.map(playerId => players
-          .filter(player => player.id === playerId)[0])
+          .filter(player => player && player.id === playerId)[0])
     });
     return this;
   }
