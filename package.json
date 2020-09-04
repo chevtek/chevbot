@@ -33,7 +33,6 @@
   },
   "dependencies": {
     "@azure/cosmos": "^3.9.1",
-    "@chevtek/poker-engine": "^1.1.0",
     "@discordjs/opus": "^0.3.2",
     "canvas": "^2.6.1",
     "discord.js": "^12.2.0",
@@ -41,7 +40,6 @@
     "ffmpeg-static": "^4.2.6",
     "moment": "^2.26.0",
     "moment-timezone": "^0.5.31",
-    "pokersolver": "^2.1.4",
     "yargs": "^15.4.1",
     "ytdl-core": "^3.2.2"
   }

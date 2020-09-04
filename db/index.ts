@@ -20,11 +20,11 @@ let containers: containers = {};
 
 export async function initializeDb () {
   const { database } = await client.databases.createIfNotExists({ id: COSMOS_DATABASE_ID });
-  const { container } = await database.containers.createIfNotExists(
-    { id: "poker-tables" },
-    { offerThroughput: 400 }
-  );
-  containers.pokerTables = container;
+  // const { container } = await database.containers.createIfNotExists(
+  //   { id: "poker-tables" },
+  //   { offerThroughput: 400 }
+  // );
+  // containers.pokerTables = container;
 }
 
 export default containers;
