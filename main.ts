@@ -12,6 +12,7 @@ import discordClient from "./discord-client";
 import config from "./config";
 import { initializeDb } from "./db";
 import { handler as listChannels } from "./commands/channels";
+import sloganChecker from "./utilities/slogan-checker";
 
 const readDir = util.promisify(fs.readdir);
 
@@ -23,9 +24,13 @@ const {
 
 (async () => {
 
+  await initializeDb();
+  console.log("Database initialized.");
+
   discordClient.on("ready", () => {
-    discordClient.user?.setActivity({ name: `for cmds | ${COMMAND_PREFIX}help`, type: "WATCHING" });
+    discordClient.user!.setActivity({ name: `for cmds | ${COMMAND_PREFIX}help`, type: "WATCHING" });
     console.log(`Chevbot online [${moment()}]`);
+    sloganChecker();
   });
 
   discordClient.on("guildMemberAdd", async member => {
@@ -94,7 +99,6 @@ const {
     }
   });
 
-  await initializeDb();
 
   discordClient.on("message", message => {
     const { content, author } = message;

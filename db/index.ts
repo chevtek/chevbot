@@ -13,18 +13,24 @@ const client = new CosmosClient({
 });
 
 interface containers {
-  pokerTables?: Container
+  sloganMembers?: Container,
+  sloganTemplates?: Container
 }
 
 let containers: containers = {};
 
 export async function initializeDb () {
   const { database } = await client.databases.createIfNotExists({ id: COSMOS_DATABASE_ID });
-  // const { container } = await database.containers.createIfNotExists(
-  //   { id: "poker-tables" },
-  //   { offerThroughput: 400 }
-  // );
-  // containers.pokerTables = container;
+  const { container: sloganMembers } = await database.containers.createIfNotExists(
+    { id: "slogan-members" },
+    { offerThroughput: 400 }
+  );
+  containers.sloganMembers = sloganMembers;
+  const { container: sloganTemplates } = await database.containers.createIfNotExists(
+    { id: "slogan-templates" },
+    { offerThroughput: 400 }
+  );
+  containers.sloganTemplates = sloganTemplates;
 }
 
 export default containers;
