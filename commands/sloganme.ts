@@ -3,7 +3,7 @@ import db from "../db";
 
 export const command = "sloganme";
 
-export const description = "Sign me up to have my nickname changed every day!";
+export const description = "Sign me up for Mirima's mystery slogan!";
 
 export const builder = {
   "add-slogan": {
