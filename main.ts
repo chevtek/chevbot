@@ -58,7 +58,7 @@ const {
       const randomBackground = bannerBackgrounds[Math.floor(Math.random() * bannerBackgrounds.length)];
       const background = await loadImage(`${bannerDir}/${randomBackground}`);
       ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+      ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
       ctx.fillRect(0, 0, width, height);
       ctx.font = "28px Arial";
       ctx.fillStyle = "#ffffff";
