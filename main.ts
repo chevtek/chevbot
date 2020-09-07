@@ -35,7 +35,7 @@ const {
 
   discordClient.on("guildMemberAdd", async member => {
     try {
-      const channel = member.guild.channels.cache.find(ch => ch.name === "general") as TextChannel;
+      const channel = member.guild.publicUpdatesChannel;
       if (!channel) return;
       registerFont("./fonts/arial.ttf", { family: "sans-serif" });
       const width = 700, height = 250, cornerRadius = 30;
@@ -58,7 +58,7 @@ const {
       const randomBackground = bannerBackgrounds[Math.floor(Math.random() * bannerBackgrounds.length)];
       const background = await loadImage(`${bannerDir}/${randomBackground}`);
       ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+      ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
       ctx.fillRect(0, 0, width, height);
       ctx.font = "28px Arial";
       ctx.fillStyle = "#ffffff";
