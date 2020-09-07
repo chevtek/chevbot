@@ -35,7 +35,7 @@ const {
 
   discordClient.on("guildMemberAdd", async member => {
     try {
-      const channel = member.guild.publicUpdatesChannel;
+      const channel = member.guild.systemChannel;
       if (!channel) return;
       registerFont("./fonts/arial.ttf", { family: "sans-serif" });
       const width = 700, height = 250, cornerRadius = 30;
