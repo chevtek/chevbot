@@ -15,7 +15,7 @@ export default async function () {
           const guild = discordClient.guilds.cache.get(memberDoc.guildId);
           const member = guild!.members.cache.get(memberDoc.id!);
           const username = member!.user.username;
-          const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
+          const randomTemplate = templates[Math.floor(Math.random() * templates.length)].template;
           const renderedTemplate = randomTemplate.replace(/{{name}}/g, username);
           member!.setNickname(renderedTemplate);
         });
