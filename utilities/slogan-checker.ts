@@ -11,14 +11,14 @@ export default async function () {
       if (currentDate.hour() === 3) {
         const { resources: members } = await sloganMembers!.items.readAll().fetchAll();
         const { resources: templates } = await sloganTemplates!.items.readAll().fetchAll();
-        members.forEach(memberDoc => {
+        await Promise.all(members.map(async memberDoc => {
           const guild = discordClient.guilds.cache.get(memberDoc.guildId);
           const member = guild!.members.cache.get(memberDoc.id!);
           const username = member!.user.username;
           const randomTemplate = templates[Math.floor(Math.random() * templates.length)].template;
           const renderedTemplate = randomTemplate.replace(/{{name}}/g, username);
-          member!.setNickname(renderedTemplate);
-        });
+          await member?.setNickname(renderedTemplate);
+        }));
       }
       console.log("...done.");
     } catch (err) {

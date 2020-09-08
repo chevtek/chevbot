@@ -18,7 +18,7 @@ const readDir = util.promisify(fs.readdir);
 
 const {
   COMMAND_PREFIX,
-  DISCORD_BOT_TAG,
+  DISCORD_BOT_TOKEN,
   PORT
 } = config;
 
@@ -103,18 +103,19 @@ const {
   discordClient.on("message", message => {
     const { content, author } = message;
     // If the author of the message is the bot itself then ignore.
-    if (author.tag === DISCORD_BOT_TAG) return;
+    if (author.id === discordClient.user?.id) return;
     // Check if message is a bot command.
     if (content.substr(0, COMMAND_PREFIX!.length) !== COMMAND_PREFIX) return;
     // Parse command.
     parse(content.substr(COMMAND_PREFIX.length), { discord: { message } });
   });
 
+  await discordClient.login(DISCORD_BOT_TOKEN);
+
   http.createServer((req, res) => {
     res.writeHead(200);
     res.write("Chevbot is running.\n\n");
     res.write(`COMMAND_PREFIX: ${COMMAND_PREFIX}\n`);
-    res.write(`DISCORD_BOT_TAG: ${DISCORD_BOT_TAG}\n`);
     res.end();
   }).listen(PORT || 3000);
 
