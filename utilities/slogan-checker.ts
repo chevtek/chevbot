@@ -8,15 +8,19 @@ export default async function () {
     try {
       console.log("Running slogan checker...");
       const currentDate = moment();
-      if (currentDate.hour() === 3) {
+      if (currentDate.hour() === 5) {
         const { resources: members } = await sloganMembers!.items.readAll().fetchAll();
         const { resources: templates } = await sloganTemplates!.items.readAll().fetchAll();
         await Promise.all(members.map(async memberDoc => {
           const guild = discordClient.guilds.cache.get(memberDoc.guildId);
           const member = guild!.members.cache.get(memberDoc.id!);
-          const username = member!.user.username;
+          let username = member!.user.username;
           const randomTemplate = templates[Math.floor(Math.random() * templates.length)].template;
-          const renderedTemplate = randomTemplate.replace(/{{name}}/g, username);
+          let renderedTemplate = randomTemplate.replace(/{{name}}/g, username);
+          while (renderedTemplate.length > 32) {
+            username = username.slice(0, username.length - 1);
+            renderedTemplate = randomTemplate.replace(/{{name}}/g, username);
+          }
           await member?.setNickname(renderedTemplate);
         }));
       }
