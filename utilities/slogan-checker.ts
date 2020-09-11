@@ -7,6 +7,7 @@ export default async function () {
     try {
       console.log("Running slogan checker...");
       if (Math.floor(Math.random() * 12) === 0) {
+        console.log("Triggered!");
         const { resources: members } = await sloganMembers!.items.readAll({ partitionKey: "/_partitionKey" }).fetchAll();
         const { resources: templates } = await sloganTemplates!.items.readAll({ partitionKey: "/_partitionKey"}).fetchAll();
         await Promise.all(members.map(async memberDoc => {
