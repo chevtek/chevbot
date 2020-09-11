@@ -6,7 +6,7 @@ export default async function () {
   setInterval(async () => {
     try {
       console.log("Running slogan checker...");
-      if (Math.floor(Math.random() * 24) === 0) {
+      if (Math.floor(Math.random() * 12) === 0) {
         const { resources: members } = await sloganMembers!.items.readAll().fetchAll();
         const { resources: templates } = await sloganTemplates!.items.readAll().fetchAll();
         await Promise.all(members.map(async memberDoc => {
