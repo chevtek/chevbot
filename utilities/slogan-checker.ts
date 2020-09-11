@@ -1,14 +1,12 @@
 import db from "../db";
 import discordClient from "../discord-client";
-import moment from "moment";
 
 export default async function () {
   const { sloganMembers, sloganTemplates } = db;
   setInterval(async () => {
     try {
       console.log("Running slogan checker...");
-      const currentDate = moment();
-      if (currentDate.hour() === 5) {
+      if (Math.floor(Math.random() * 24) === 0) {
         const { resources: members } = await sloganMembers!.items.readAll().fetchAll();
         const { resources: templates } = await sloganTemplates!.items.readAll().fetchAll();
         await Promise.all(members.map(async memberDoc => {
@@ -28,5 +26,5 @@ export default async function () {
     } catch (err) {
       console.log("SLOGAN_CHECKER:", err);
     }
-  }, 0.9999 * (60 * 60 * 1000));
+  }, 1 * (60 * 60 * 1000));
 }
