@@ -7,8 +7,8 @@ export default async function () {
     try {
       console.log("Running slogan checker...");
       if (Math.floor(Math.random() * 12) === 0) {
-        const { resources: members } = await sloganMembers!.items.readAll().fetchAll();
-        const { resources: templates } = await sloganTemplates!.items.readAll().fetchAll();
+        const { resources: members } = await sloganMembers!.items.readAll({ partitionKey: "/_partitionKey" }).fetchAll();
+        const { resources: templates } = await sloganTemplates!.items.readAll({ partitionKey: "/_partitionKey"}).fetchAll();
         await Promise.all(members.map(async memberDoc => {
           const guild = discordClient.guilds.cache.get(memberDoc.guildId);
           const member = guild!.members.cache.get(memberDoc.id!);

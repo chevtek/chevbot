@@ -30,30 +30,32 @@ export async function handler({ discord, add, remove, list }) {
       return;
     }
     sloganTemplates!.items.create({
-      template: add
+      template: add,
+      _partitionKey: "/_partitionKey"
     });
     message.reply("Slogan added!");
     return;
   }
   if (list) {
-    const { resources: templates } = await sloganTemplates!.items.readAll().fetchAll();
+    const { resources: templates } = await sloganTemplates!.items.readAll({ partitionKey: "/_partitionKey" }).fetchAll();
     message.reply(templates.map(doc => `${doc.id}: ${doc.template}`).join("\n"), { split: true });
     return;
   }
   if (remove) {
-    await sloganTemplates!.item(remove).delete();
+    await sloganTemplates!.item(remove, "/_partitionKey").delete();
     message.reply("Slogan deleted.");
     return;
   }
-  const { resource: member } = await sloganMembers!.item(message.author.id).read();
+  const { resource: member } = await sloganMembers!.item(message.author.id, "/_partitionKey").read();
   if (member) {
-    await sloganMembers!.item(message.author.id).delete();
+    await sloganMembers!.item(message.author.id, "/_partitionKey").delete();
     message.reply("You have been unsubscribed from sloganme!");
     return;
   }
   await sloganMembers!.items.create({
     id: message.author.id,
-    guildId: message.guild!.id
+    guildId: message.guild!.id,
+    _partitionKey: "/_partitionKey"
   });
   message.reply("You are now subscribed to sloganme!");
 }
