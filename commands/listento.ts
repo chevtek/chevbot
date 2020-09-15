@@ -11,7 +11,7 @@ export async function handler ({ discord, title }) {
   const textChannel = message.guild!.channels.cache.get("752945543092895865");
   const voiceChannel = message.guild!.channels.cache.get("709780789218508821");
 
-  await textChannel!.setName(title);
+  await textChannel!.setName(title.replace(/&/g, "and"));
   await voiceChannel!.setName(`${title} 🎧`);
   
   await message.reply(`Listen channels have been updated to "${title}" successfully.`);
