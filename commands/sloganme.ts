@@ -25,12 +25,17 @@ export async function handler({ discord, add, remove, list }) {
   const message = discord.message as Message;
   const { sloganMembers, sloganTemplates } = db;
   if (add) {
-    if (add.length > 32) {
+    const newTemplate = add as string;
+    if (newTemplate.length > 32) {
       message.reply("Slogans cannot be more than 32 characters long.");
       return;
     }
+    if (!newTemplate.includes("{{name}}")) {
+      message.reply("Slogan template must include at least one instance of `{{name}}`.");
+      return;
+    }
     sloganTemplates!.items.create({
-      template: add,
+      template: newTemplate,
       _partitionKey: "/_partitionKey"
     });
     message.reply("Slogan added!");
@@ -57,5 +62,5 @@ export async function handler({ discord, add, remove, list }) {
     guildId: message.guild!.id,
     _partitionKey: "/_partitionKey"
   });
-  message.reply("You are now subscribed to sloganme! Every hour a D20 is rolled. If it rolls a 20 then all subscribers will see their name changed.");
+  message.reply("You are now subscribed to sloganme! Every hour a D20 is rolled. If it rolls a 20 then all subscribers will see their name changed. If you'd like to contribute additional slogans, simply run `/sloganme add The Power of {{name}}!`, making sure to include at least one instance of `{{name}}` in the slogan.");
 }
