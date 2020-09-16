@@ -57,5 +57,5 @@ export async function handler({ discord, add, remove, list }) {
     guildId: message.guild!.id,
     _partitionKey: "/_partitionKey"
   });
-  message.reply("You are now subscribed to sloganme!");
+  message.reply("You are now subscribed to sloganme! Every hour a D20 is rolled. If it rolls a 20 then all subscribers will see their name changed.");
 }
