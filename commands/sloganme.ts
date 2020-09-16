@@ -26,7 +26,7 @@ export async function handler({ discord, add, remove, list }) {
   if (add) {
     const newTemplate = add as string;
     if (newTemplate.length > 32) {
-      message.reply("Slogans cannot be more than 32 characters long.");
+      message.reply(`Slogans cannot be more than 32 characters long. Yours was ${newTemplate.length} characters long.`);
       return;
     }
     if (!newTemplate.includes("{{name}}")) {
