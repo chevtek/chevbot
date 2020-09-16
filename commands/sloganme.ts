@@ -7,8 +7,7 @@ export const description = "Sign me up for Mirima's mystery slogan!";
 
 export const builder = {
   "add": {
-    type: "string",
-    hidden: true
+    type: "string"
   },
   "remove": {
     type: "string",
@@ -62,5 +61,5 @@ export async function handler({ discord, add, remove, list }) {
     guildId: message.guild!.id,
     _partitionKey: "/_partitionKey"
   });
-  message.reply("You are now subscribed to sloganme! Every hour a D20 is rolled. If it rolls a 20 then all subscribers will see their name changed. If you'd like to contribute additional slogans, simply run `/sloganme add \"The Power of {{name}}!\"`, making sure to include at least one instance of `{{name}}` in the slogan.");
+  message.reply("You are now subscribed to sloganme! Every hour a D20 is rolled. If it rolls a 20 then all subscribers will see their name changed. If you'd like to contribute additional slogans, simply run `/sloganme --add \"The Power of {{name}}!\"`, making sure to include at least one instance of `{{name}}` in the slogan.");
 }
