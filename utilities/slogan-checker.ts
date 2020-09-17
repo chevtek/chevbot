@@ -6,7 +6,7 @@ export default async function () {
   setInterval(async () => {
     try {
       console.log("Running slogan checker...");
-      if (Math.floor(Math.random() * 20) === 0) {
+      if (Math.floor(Math.random() * 15) === 0) {
         console.log("Triggered!");
         const { resources: members } = await sloganMembers!.items.readAll({ partitionKey: "/_partitionKey" }).fetchAll();
         const { resources: templates } = await sloganTemplates!.items.readAll({ partitionKey: "/_partitionKey"}).fetchAll();
