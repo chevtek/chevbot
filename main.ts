@@ -12,7 +12,7 @@ import discordClient from "./discord-client";
 import config from "./config";
 import { initializeDb } from "./db";
 import { handler as listChannels } from "./commands/channels";
-import sloganChecker from "./utilities/slogan-checker";
+import { sloganChecker, onThisDay } from "./utilities";
 
 const readDir = util.promisify(fs.readdir);
 
@@ -31,6 +31,7 @@ const {
     discordClient.user!.setActivity({ name: `for cmds | ${COMMAND_PREFIX}help`, type: "WATCHING" });
     console.log(`Chevbot online [${moment()}]`);
     sloganChecker();
+    onThisDay();
   });
 
   discordClient.on("guildMemberAdd", async member => {
