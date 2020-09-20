@@ -18,7 +18,7 @@ export async function handler ({ discord, user }) {
     color: "#00ff00",
     title: `${member.displayName}'s Avatar`,
     image: {
-      url: message.author.displayAvatarURL({ format: 'png' })
+      url: member.user.displayAvatarURL({ format: 'png' })
     }
   }));
 }
