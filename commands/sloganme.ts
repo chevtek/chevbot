@@ -33,6 +33,14 @@ export async function handler({ discord, add, remove, list }) {
       message.reply("Slogan template must include at least one instance of `{{name}}`.");
       return;
     }
+    const { resources: [existingTemplate] } = await sloganTemplates!.items.query({
+      query: "SELECT * FROM c where c.template = @newTemplate",
+      parameters: [{ name: "@newTemplate",  value: newTemplate }]    
+    }, { partitionKey: "/_partitionKey" }).fetchAll();
+    if (existingTemplate) {
+      message.reply("That slogan already exists.");
+      return;
+    }
     sloganTemplates!.items.create({
       template: newTemplate,
       _partitionKey: "/_partitionKey"
