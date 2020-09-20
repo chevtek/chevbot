@@ -23,7 +23,8 @@ export default async function () {
           .setTitle(`On this day in history!`)
           .setThumbnail(discordClient.user!.avatarURL({ format: "png" })!)
           .setDescription(`**Event**\n${event.markdown}\n\n**Birth**\n${birth.markdown}\n\n**Death**\n${death.markdown}`)
-          .setColor("#00ff00");
+          .setColor("#00ff00")
+          .setFooter("Powered by MuffinLabs.com", "https://github.com/muffinista.png");
         const channels = discordClient.guilds.cache.map(guild => guild.systemChannel);
         await Promise.all(channels.map(channel => channel?.send(embed)));
       }
