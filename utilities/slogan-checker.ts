@@ -6,7 +6,9 @@ export default async function () {
   setInterval(async () => {
     try {
       console.log("Running slogan checker...");
-      if (Math.floor(Math.random() * 15) === 0) {
+      const roll = Math.floor(Math.random() * 15);
+      console.log(`Rolled a ${roll}.`);
+      if (roll === 0) {
         console.log("Triggered!");
         const { resources: members } = await sloganMembers!.items.readAll({ partitionKey: "/_partitionKey" }).fetchAll();
         const { resources: templates } = await sloganTemplates!.items.readAll({ partitionKey: "/_partitionKey"}).fetchAll();
@@ -23,7 +25,6 @@ export default async function () {
           await member?.setNickname(renderedTemplate);
         }));
       }
-      console.log("...done.");
     } catch (err) {
       console.log("SLOGAN_CHECKER:", err);
     }
