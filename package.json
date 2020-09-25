@@ -7,7 +7,7 @@
     "dev": "ts-node-dev --project ./tsconfig.json .",
     "install": "npm run build",
     "clean": "rimraf ./build",
-    "build": "npm run clean && tsc --project ./tsconfig.json",
+    "build": "npm run clean && tsc --project ./tsconfig.json && cp ./.env ./build/.env",
     "start": "node ./build/main.js"
   },
   "repository": {
