@@ -7,7 +7,12 @@ export const description = "Sign me up for Mirima's mystery slogan!";
 
 export const builder = {
   "add": {
-    type: "string"
+    type: "string",
+    description: "Add a new slogan template to the database."
+  },
+  "count": {
+    type: "boolean",
+    description: "Show how many slogan templates are in the database."
   },
   "remove": {
     type: "string",
@@ -20,7 +25,7 @@ export const builder = {
   }
 };
 
-export async function handler({ discord, add, remove, list }) {
+export async function handler({ discord, add, remove, list, count }) {
   const message = discord.message as Message;
   const { sloganMembers, sloganTemplates } = db;
   if (add) {
@@ -46,6 +51,15 @@ export async function handler({ discord, add, remove, list }) {
       _partitionKey: "/_partitionKey"
     });
     message.reply("Slogan added!");
+    return;
+  }
+  if (count) {
+    const { resources: count } = await sloganTemplates!.items.query({
+      query: "SELECT VALUE COUNT(1) FROM c"
+    }, {
+      partitionKey: "/_partitionKey"
+    }).fetchAll();
+    message.reply(`There are ${count} slogan templates in the database.`);
     return;
   }
   if (list) {
