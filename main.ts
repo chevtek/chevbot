@@ -32,7 +32,7 @@ const {
     console.log(`Chevbot online [${moment()}]`);
     sloganChecker();
     onThisDay();
-    listenForAudio();
+    // listenForAudio();
   });
 
   discordClient.on("guildMemberAdd", async member => {
