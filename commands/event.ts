@@ -57,16 +57,17 @@ export async function handler ({ discord, title, date, description, notify, imag
 
   const embed = new MessageEmbed()
     .setTitle(title)
+    .setColor("#00ff00")
     .setDescription(`
       **When:**
-      ${parsedDate.format("dddd, MMM Do YYYY")}
+      ${parsedDate.format("dddd, MMM Do YYYY")} at ${parsedDate.format("h:mm a z")}
 
       **Description:**
       ${description || "No description."}
 
       **RSVP by reacting to this post with <:yes:${yesEmoji}>**
     `)
-    .setThumbnail(image)
+    .setImage(image)
     .attachFiles(["./images/chevtek.png"])
     .setFooter("Powered by Chevtek", "attachment://chevtek.png");
 
@@ -86,6 +87,8 @@ export async function handler ({ discord, title, date, description, notify, imag
     roleId: eventRole.id,
     _partitionKey: "/_partitionKey"
   });
+
+  await message.delete();
 
   await initEventRsvp(event);
 }
