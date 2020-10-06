@@ -39,7 +39,7 @@ export async function handler({ discord, add, remove, list, count }) {
       return;
     }
     const { resources: [existingTemplate] } = await sloganTemplates!.items.query({
-      query: "SELECT * FROM c where c.template = @newTemplate",
+      query: "SELECT * FROM c WHERE c.template = @newTemplate",
       parameters: [{ name: "@newTemplate",  value: newTemplate }]    
     }, { partitionKey: "/_partitionKey" }).fetchAll();
     if (existingTemplate) {

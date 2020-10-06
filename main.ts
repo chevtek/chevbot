@@ -4,15 +4,15 @@ dotenv.config();
 import http from "http";
 import fs from "fs";
 import util from "util";
-import { MessageAttachment, TextChannel } from "discord.js";
+import { MessageAttachment } from "discord.js";
 import { createCanvas, registerFont, loadImage } from "canvas";
-import moment from "moment";
+import moment from "moment-timezone";
 import parse from "./parse";
 import discordClient from "./discord-client";
 import config from "./config";
 import { initializeDb } from "./db";
 import { handler as listChannels } from "./commands/channels";
-import { sloganChecker, onThisDay, listenForAudio } from "./utilities";
+import { cronJobs, initEventRsvp } from "./utilities";
 
 const readDir = util.promisify(fs.readdir);
 
@@ -27,12 +27,15 @@ const {
   await initializeDb();
   console.log("Database initialized.");
 
-  discordClient.on("ready", () => {
-    discordClient.user!.setActivity({ name: `for cmds | ${COMMAND_PREFIX}help`, type: "WATCHING" });
-    console.log(`Chevbot online [${moment()}]`);
-    sloganChecker();
-    onThisDay();
-    // listenForAudio();
+  discordClient.on("ready", async () => {
+    try {
+      await discordClient.user!.setActivity({ name: `for cmds | ${COMMAND_PREFIX}help`, type: "WATCHING" });
+      console.log(`Chevbot online [${moment().tz("America/Denver")}]`);
+      await initEventRsvp();
+      await cronJobs();
+    } catch (err) {
+      console.log(err);
+    }
   });
 
   discordClient.on("guildMemberAdd", async member => {

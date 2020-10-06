@@ -14,7 +14,8 @@ const client = new CosmosClient({
 
 interface containers {
   sloganMembers?: Container,
-  sloganTemplates?: Container
+  sloganTemplates?: Container,
+  events?: Container
 }
 
 let containers: containers = {};
@@ -31,6 +32,11 @@ export async function initializeDb () {
     { offerThroughput: 400 }
   );
   containers.sloganTemplates = sloganTemplates;
+  const { container: events } = await database.containers.createIfNotExists(
+    { id: "events" },
+    { offerThroughput: 400 }
+  );
+  containers.events = events;
 }
 
 export default containers;
