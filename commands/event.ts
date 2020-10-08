@@ -40,7 +40,7 @@ export async function handler ({ discord, title, date, description, notify, imag
 
   const message = discord.message as Message;
 
-  const parsedDate = moment(date, "M/D/YYYY h:mm a", true).tz("America/Denver");
+  const parsedDate = moment(date, "M/D/YYYY h:mm a", true);
   if (!parsedDate.isValid()) {
     await message.reply("Invalid date. Please ensure the date adheres to the \"M/D/YYYY h:mm a\" format. Example: \"1/1/2021 7:00 PM\"");
     return;

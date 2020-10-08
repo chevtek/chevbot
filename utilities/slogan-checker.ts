@@ -2,9 +2,8 @@ import db from "../db";
 import discordClient from "../discord-client";
 import moment from "moment-timezone"; 
 
-const { sloganMembers, sloganTemplates } = db;
-
 export default async function () {
+  const { sloganMembers, sloganTemplates } = db;
   const now = moment().tz("America/Denver");
   if (now.minute() !== 0) return;
   console.log("Running slogan checker...");
