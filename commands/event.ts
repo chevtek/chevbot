@@ -19,7 +19,13 @@ export const builder = yargs => yargs
     description: "The date and time for the event. (Ex: \"1/1/2021 12:00 PM\")",
     type: "string"
   })
+  .option("time-zone", {
+    alias: ["tz"],
+    description: "The time zone for this event.",
+    default: "America/Denver"
+  })
   .option("description", {
+    alias: ["desc"],
     description: "An optional description of event details.",
     type: "string"
   })
@@ -29,18 +35,19 @@ export const builder = yargs => yargs
     type: "string"
   })
   .option("image", {
+    alias: ["img"],
     default: discordClient.user!.avatarURL({ format: "png" }),
     type: "string"
   });
 
 const yesEmoji = "749412605218652381";
 
-export async function handler ({ discord, title, date, description, notify, image }) {
+export async function handler ({ discord, title, date, description, notify, image, timeZone }) {
   const { events } = db;
 
   const message = discord.message as Message;
 
-  const parsedDate = moment(date, "M/D/YYYY h:mm a", true);
+  const parsedDate = moment.tz(date, "M/D/YYYY h:mm a", true, timeZone);
   if (!parsedDate.isValid()) {
     await message.reply("Invalid date. Please ensure the date adheres to the \"M/D/YYYY h:mm a\" format. Example: \"1/1/2021 7:00 PM\"");
     return;
