@@ -11,7 +11,7 @@ import parse from "./parse";
 import discordClient from "./discord-client";
 import config from "./config";
 import { initializeDb } from "./db";
-import { handler as listChannels } from "./commands/channels";
+// import { handler as listChannels } from "./commands/channels";
 import { cronJobs, initEventRsvp } from "./utilities";
 
 const readDir = util.promisify(fs.readdir);
@@ -91,14 +91,14 @@ const {
       ctx.drawImage(avatar, 25, 25, 200, 200);
       const attachment = new MessageAttachment(canvas.toBuffer(), "welcome-image.png");
       await channel.send(attachment);
-      listChannels({
-        discord: {
-          message: {
-            channel,
-            author: member
-          }
-        }
-      });
+      // listChannels({
+      //   discord: {
+      //     message: {
+      //       channel,
+      //       author: member
+      //     }
+      //   }
+      // });
     } catch (err) {
       console.error(err);
     }
