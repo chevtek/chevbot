@@ -1,11 +1,15 @@
 import db from "../db";
 import discordClient from "../discord-client";
 import moment from "moment-timezone"; 
+import { OperationInput } from "@azure/cosmos";
 
+let allow = true;
 export default async function () {
   const { sloganMembers, sloganTemplates } = db;
   const now = moment().tz("America/Denver");
-  if (now.hour() !== 6 || now.minute() !== 0) return;
+  // if (now.hour() !== 6 || now.minute() !== 0) return;
+  if (!allow) return;
+  allow = false;
   const { resources: members } = await sloganMembers!.items.readAll({ partitionKey: "/_partitionKey" }).fetchAll();
   const { resources: templates } = await sloganTemplates!.items.readAll({ partitionKey: "/_partitionKey"}).fetchAll();
   console.log(`${templates.length} templates found.`);
@@ -13,13 +17,24 @@ export default async function () {
   console.log(`${unusedTemplates.length} templates have not been used yet.`);
   if (unusedTemplates.length < members.length) {
     console.log(`There are ${members.length} sloganme members but only ${unusedTemplates.length} unused templates. Resetting template usage...`);
-    await sloganTemplates!.items.bulk(templates.map(template => {
+    const operations = templates.map(template => {
       template.used = false;
       return {
         operationType: "Upsert",
         resourceBody: template
-      };
-    }));
+      } as OperationInput;
+    });
+    const batches: OperationInput[][] = [];
+    let currentBatch: OperationInput[] = [];
+    let index = 0;
+    operations.forEach(operation => {
+      if (currentBatch.length === 100) {
+        batches.push(currentBatch);
+        currentBatch = [];
+      }
+      currentBatch.push(operation);
+    });
+    await Promise.all(batches.map(async batch => sloganTemplates!.items.bulk(batch)));
     console.log("All templates have been marked unused.");
     unusedTemplates = templates.filter(template => !template.used);
   }
