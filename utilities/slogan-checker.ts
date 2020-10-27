@@ -1,15 +1,9 @@
 import db from "../db";
 import discordClient from "../discord-client";
-import moment from "moment-timezone"; 
 import { OperationInput } from "@azure/cosmos";
 
-let allow = true;
 export default async function () {
   const { sloganMembers, sloganTemplates } = db;
-  const now = moment().tz("America/Denver");
-  // if (now.hour() !== 6 || now.minute() !== 0) return;
-  if (!allow) return;
-  allow = false;
   const { resources: members } = await sloganMembers!.items.readAll({ partitionKey: "/_partitionKey" }).fetchAll();
   const { resources: templates } = await sloganTemplates!.items.readAll({ partitionKey: "/_partitionKey"}).fetchAll();
   console.log(`${templates.length} templates found.`);
@@ -21,26 +15,29 @@ export default async function () {
       template.used = false;
       return {
         operationType: "Upsert",
+        partitionKey: "/_partitionKey",
         resourceBody: template
       } as OperationInput;
     });
     const batches: OperationInput[][] = [];
     let currentBatch: OperationInput[] = [];
-    let index = 0;
     operations.forEach(operation => {
-      if (currentBatch.length === 100) {
+      if (currentBatch.length === 5) {
         batches.push(currentBatch);
         currentBatch = [];
       }
       currentBatch.push(operation);
     });
-    await Promise.all(batches.map(async batch => sloganTemplates!.items.bulk(batch)));
+    batches.push(currentBatch);
+    for (const batch of batches) {
+      console.log(await sloganTemplates!.items.bulk(batch));
+    }
     console.log("All templates have been marked unused.");
     unusedTemplates = templates.filter(template => !template.used);
   }
   await Promise.all(members.map(async memberDoc => {
-    const guild = discordClient.guilds.cache.get(memberDoc.guildId);
-    const member = guild!.members.cache.get(memberDoc.id!);
+    const guild = discordClient.guilds.cache.get(memberDoc.guildId) || await discordClient.guilds.fetch(memberDoc.guildId);
+    const member = guild!.members.cache.get(memberDoc.id!) || await guild!.members.fetch(memberDoc.id!);
     let username = member!.user.username;
     const randomTemplate = unusedTemplates[Math.floor(Math.random() * unusedTemplates.length)];
     let renderedTemplate = randomTemplate.template.replace(/{{name}}/g, username);

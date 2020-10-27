@@ -1,11 +1,8 @@
 import axios from "axios";
 import discordClient from "../discord-client";
-import moment from "moment-timezone";
 import { MessageEmbed } from "discord.js";
 
 export default async function () {
-  const now = moment().tz("America/Denver");
-  if (now.hour() !== 6 || now.minute() !== 0) return;
   const {data:{data:{
     Events: events,
     Births: births,
