@@ -87,7 +87,7 @@ const {
       ctx.arc(125, 125, 100, 0, Math.PI * 2, true);
       ctx.closePath();
       ctx.clip();
-      const avatar = await loadImage(member.user!.displayAvatarURL({ format: "png" }));
+      const avatar = await loadImage(member.user!.displayAvatarURL({ format: "png", size: 1024 }));
       ctx.drawImage(avatar, 25, 25, 200, 200);
       const attachment = new MessageAttachment(canvas.toBuffer(), "welcome-image.png");
       await channel.send(attachment);
