@@ -70,7 +70,7 @@ async function checkCaliforniaStatus(sessionId) {
   const status = data.ballots[0].status_summary.current_status.display_description;
   const currentStatus = "Your ballot has been mailed! Your ballot is at the Post Office and is making its way to you. Look for your ballot in your mailbox soon!";
   if (status === currentStatus) {
-    return [false, "Ballot not yet recieved."];
+    return [false, "Ballot not yet received."];
   }
   return [true, status];
 }
@@ -85,7 +85,7 @@ async function checkUtahStatus(payload) {
   });
   const currentStatus = "Your county clerk mailed your ballot to you.";
   if (status === currentStatus) {
-    return [false, "Ballot not yet recieved."];
+    return [false, "Ballot not yet received."];
   }
   return [true, status];
 }
