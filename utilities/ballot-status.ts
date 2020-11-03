@@ -43,7 +43,7 @@ export default async function () {
     channel.send(`<@296828223927615488> your ballot status has been updated!`)
   }
 
-  const [mowUpdated, mowStatus] = await checkCaliforniaStatus("oocaarumv4qm5lv1ek0c4fdm81");
+  const [mowUpdated, mowStatus] = await checkCaliforniaStatus("nv15pj385358ns763r3vfj20qu");
 
   const californiaStatusEmbed = new MessageEmbed();
   californiaStatusEmbed
@@ -63,7 +63,7 @@ export default async function () {
 async function checkCaliforniaStatus(sessionId) {
   const { data } = await axios.get("https://california.ballottrax.net/api/voter/ballot-status-progress/me?language=english", {
     headers: {
-      Cookie: `PHPSESSID=${sessionId}` 
+      Cookie: `PHPSESSID=${sessionId}; NID=204=Z2UjknTlZt9DMzv8LLW-SuIcKqiHSKvTwtkf4HUfN2nuHHLxbV5L07ztRCtq7KG4KASx3cQKp_Qq8kCzKv03WJBRVRy3GxktEIVy0_IwxEw9kBOECtpbxcpBfirEiVpg51Lzi69yx3CmZSgXX1eKidvhaUZcK0GW4SXX-jnyFNQ` 
     }
   });
   const status = data.ballots[0].status_summary.current_status.display_description;
