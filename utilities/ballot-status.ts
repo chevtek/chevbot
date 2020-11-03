@@ -60,12 +60,17 @@ export default async function () {
   }
 }
 
+let AWSALB = "Y+GLxkkFrykUOZhe+/OK7Iy0C1suq0rMdOl+Z51Ubof7b7Um1I3Oqd5oxu1xaZ8t1niJRi+QxIhm9iry7MFRtv8uDjFfOctGZrrJOd+YX0i4SqjcOQI3WSUXN/Qa";
+let AWSALBCORS = "Y+GLxkkFrykUOZhe+/OK7Iy0C1suq0rMdOl+Z51Ubof7b7Um1I3Oqd5oxu1xaZ8t1niJRi+QxIhm9iry7MFRtv8uDjFfOctGZrrJOd+YX0i4SqjcOQI3WSUXN/Qa";
 async function checkCaliforniaStatus(sessionId) {
-  const { data } = await axios.get("https://california.ballottrax.net/api/voter/ballot-status-progress/me?language=english", {
+  const { data, headers: { "set-cookie": setCookies } } = await axios.get("https://california.ballottrax.net/api/voter/ballot-status-progress/me?language=english", {
     headers: {
-      Cookie: `PHPSESSID=${sessionId}; NID=204=Z2UjknTlZt9DMzv8LLW-SuIcKqiHSKvTwtkf4HUfN2nuHHLxbV5L07ztRCtq7KG4KASx3cQKp_Qq8kCzKv03WJBRVRy3GxktEIVy0_IwxEw9kBOECtpbxcpBfirEiVpg51Lzi69yx3CmZSgXX1eKidvhaUZcK0GW4SXX-jnyFNQ; AWSALBCORS=Y+GLxkkFrykUOZhe+/OK7Iy0C1suq0rMdOl+Z51Ubof7b7Um1I3Oqd5oxu1xaZ8t1niJRi+QxIhm9iry7MFRtv8uDjFfOctGZrrJOd+YX0i4SqjcOQI3WSUXN/Qa; AWSALB=Y+GLxkkFrykUOZhe+/OK7Iy0C1suq0rMdOl+Z51Ubof7b7Um1I3Oqd5oxu1xaZ8t1niJRi+QxIhm9iry7MFRtv8uDjFfOctGZrrJOd+YX0i4SqjcOQI3WSUXN/Qa` 
+      Cookie: `PHPSESSID=${sessionId}; AWSALB=${AWSALB}; AWSALBCORS=${AWSALBCORS}` 
     }
   });
+  const cookies = setCookies.join("");
+  AWSALB = cookies.match(/AWSALB=([^;]*);/)[1];
+  AWSALBCORS = cookies.match(/AWSALBCORS=([^;]*);/)[1];
   const status = data.ballots[0].status_summary.current_status.display_description;
   const currentStatus = "Your ballot has been mailed! Your ballot is at the Post Office and is making its way to you. Look for your ballot in your mailbox soon!";
   if (status === currentStatus) {
