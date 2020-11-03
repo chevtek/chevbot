@@ -16,7 +16,7 @@ export default async function () {
         ]);
       }
       
-      if (now.minute() === 0) {
+      if (now.minute() === 0 || now.minute() === 30) {
         await ballotStatus();
       }
 
