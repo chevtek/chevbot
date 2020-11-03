@@ -5,7 +5,7 @@ import onThisDay from "./on-this-day";
 import ballotStatus from "./ballot-status";
 
 export default async function () {
-  await ballotStatus();
+  // await ballotStatus();
   setInterval(async () => {
     try {
 
