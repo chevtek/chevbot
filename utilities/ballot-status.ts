@@ -43,7 +43,7 @@ export default async function () {
     channel.send(`<@296828223927615488> your ballot status has been updated!`)
   }
 
-  const [mowUpdated, mowStatus] = await checkCaliforniaStatus("325b0bvmssm10v2vobqnpe3s2i");
+  const [mowUpdated, mowStatus] = await checkCaliforniaStatus("sl4nbf59nq4tpf94jhvd0pu2am");
 
   const californiaStatusEmbed = new MessageEmbed();
   californiaStatusEmbed
