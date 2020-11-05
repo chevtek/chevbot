@@ -36,11 +36,11 @@ export const builder = yargs => yargs
   })
   .option("image", {
     alias: ["img"],
-    default: discordClient.user!.avatarURL({ format: "png" }),
     type: "string"
   });
 
-const yesEmoji = "749412605218652381";
+const yesEmoji = "773708749051396136";
+const maybeEmoji = "773708770823635014";
 
 export async function handler ({ discord, title, date, description, notify, image, timeZone }) {
   const { events } = db;
@@ -72,16 +72,22 @@ export async function handler ({ discord, title, date, description, notify, imag
       **Description:**
       ${description || "No description."}
 
-      **RSVP by reacting to this post with <:yes:${yesEmoji}>**
+      **<:yes:${yesEmoji}> - "I plan on attending."**
+      **<:maybe:${maybeEmoji}> - "I'm interested but not sure if I'll be there."**
+
+      *Either option will give you the <@&${eventRole.id}> role so you get event updates.
     `)
-    .setImage(image)
-    .attachFiles(["./images/chevtek.png"])
+    .attachFiles(["./images/chevtek.png", "./images/calendar-icon.png"])
+    .setThumbnail("attachment://calendar-icon.png")
     .setFooter("Powered by Chevtek", "attachment://chevtek.png");
+
+  if (image) embed.setImage(image);
 
   await message.channel.send(notify);
   const eventMessage = await message.channel.send(embed);
 
   await eventMessage.react(yesEmoji);
+  await eventMessage.react(maybeEmoji);
 
   const { resource: event } = await events!.items.upsert({
     title,
