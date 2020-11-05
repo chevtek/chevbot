@@ -21,50 +21,57 @@ export default async function (event?) {
     const eventMessage = channel.messages.cache.get(event.messageId) || await channel.messages.fetch(event.messageId);
     const eventRole = (guild.roles.cache.get(event.roleId) || await guild.roles.fetch(event.roleId))!;
 
-    const reactionAddHandler = async (reaction, user) => {
+    const eventHandler = async packet => {
       try {
-        if (reaction.message.id !== eventMessage.id || user.id === discordClient.user!.id) return;
-        if (![yesEmoji, maybeEmoji].includes(reaction.emoji.id)) {
-          await eventMessage.reactions.cache.get(reaction.emoji.id || reaction.emoji.name)!.remove();
-          return;
+        if (!["MESSAGE_REACTION_ADD", "MESSAGE_REACTION_REMOVE", "MESSAGE_DELETE"].includes(packet.t)) return;
+
+        const {
+          t: type,
+          d: {
+            user_id: userId,
+            message_id: messageId,
+            // channel_id: channelId,
+            guild_id: guildId,
+            emoji
+          }
+        } = packet;
+
+        const guild = discordClient.guilds.cache.get(guildId) || await discordClient.guilds.fetch(guildId);
+        const member = guild.members.cache.get(userId) || await guild.members.fetch(userId);
+        switch (type) {
+          case "MESSAGE_REACTION_ADD":
+            if ( messageId !== eventMessage.id || userId === discordClient.user!.id) return;
+            if (![yesEmoji, maybeEmoji].includes(emoji.id)) {
+              await eventMessage.reactions.cache.get(emoji.id || emoji.name)!.remove();
+              return;
+            }
+            await eventMessage.reactions.cache
+              .filter(r => r.emoji.id !== emoji.id && r.emoji.name !== emoji.name)
+              .map(async r => r.users.remove(userId));
+            await member.roles.add(eventRole);
+            return;
+          case "MESSAGE_REACTION_REMOVE":
+            if (![yesEmoji, maybeEmoji].includes(emoji.id)
+              || messageId !== eventMessage.id
+              || userId === discordClient.user!.id) return;
+            if (eventMessage.reactions.cache.reduce((hasUser, r) => {
+              if (hasUser) return true;
+              if (r.emoji.id === emoji.id || r.emoji.name === emoji.name) return false;
+              return r.users.cache.some(u => u.id === userId);
+            }, false)) return;
+            await member!.roles.remove(eventRole);
+            return;
+          case "MESSAGE_DELETE":
+            if (messageId !== eventMessage.id) return;
+            discordClient.removeListener("raw", eventHandler);
+            await eventRole.delete();
+            await events!.item(event!.id, "/_partitionKey").delete();
+            return;
         }
-        await eventMessage.reactions.cache
-          .filter(r => r.emoji.id !== reaction.emoji.id && r.emoji.name !== reaction.emoji.name)
-          .map(async r => r.users.remove(user.id));
-        const member = reaction.message.guild?.members.cache.get(user.id);
-        await member?.roles.add(eventRole);
       } catch (err) {
         console.log(err);
       }
     };
-    discordClient.on("messageReactionAdd", reactionAddHandler);
-
-    const reactionRemoveHandler = async (reaction, user) => {
-      try {
-        if (![yesEmoji, maybeEmoji].includes(reaction.emoji.id)
-          || reaction.message.id !== eventMessage.id
-          || user.id === discordClient.user!.id) return;
-        if (eventMessage.reactions.cache.reduce((hasUser, r) => hasUser || r.users.cache.some(u => u.id === user.id), false)) return;
-        const member = reaction.message.guild!.members.cache.get(user.id);
-        await member!.roles.remove(eventRole);
-      } catch (err) {
-        console.log(err);
-      }
-    };
-    discordClient.on("messageReactionRemove", reactionRemoveHandler);
-
-    const messageDeleteHandler = async deletedMessage => {
-      try {
-        if (deletedMessage.id !== eventMessage.id) return;
-        discordClient.removeListener("messageReactionAdd", reactionAddHandler);
-        discordClient.removeListener("messageReactionRemove", reactionRemoveHandler);
-        discordClient.removeListener("messageDelete", messageDeleteHandler);
-        await eventRole.delete();
-        await events!.item(event!.id, "/_partitionKey").delete();
-      } catch (err) {
-        console.log(err);
-      }
-    };
-    discordClient.on("messageDelete", messageDeleteHandler);
+    discordClient.on("raw", eventHandler);
   }
 }
