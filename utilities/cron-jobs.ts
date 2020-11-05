@@ -2,10 +2,8 @@ import moment from "moment-timezone";
 import sloganChecker from "./slogan-checker";
 import onThisDay from "./on-this-day";
 // import eventReminders from "./event-reminders";
-import ballotStatus from "./ballot-status";
 
 export default async function () {
-  // await ballotStatus();
   setInterval(async () => {
     try {
 
@@ -15,10 +13,6 @@ export default async function () {
           onThisDay(),
           sloganChecker()
         ]);
-      }
-      
-      if ([0, 15, 30, 45].includes(now.minute())) {
-        await ballotStatus();
       }
 
     } catch (err) {
