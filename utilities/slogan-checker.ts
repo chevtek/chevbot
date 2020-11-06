@@ -41,6 +41,10 @@ export default async function () {
     let username = member!.user.username;
     const randomTemplate = unusedTemplates[Math.floor(Math.random() * unusedTemplates.length)];
     let renderedTemplate = randomTemplate.template.replace(/{{name}}/g, username);
+    if (renderedTemplate.length > 32 && username.indexOf(" ") !== -1) {
+      username = username.substr(0, username.indexOf(" "));
+      renderedTemplate = randomTemplate.replace(/{{name}}/g, username);
+    }
     while (renderedTemplate.length > 32) {
       username = username.slice(0, username.length - 1);
       renderedTemplate = randomTemplate.template.replace(/{{name}}/g, username);
