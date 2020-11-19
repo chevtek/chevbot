@@ -35,23 +35,29 @@ export default async function () {
     console.log("All templates have been marked unused.");
     unusedTemplates = templates.filter(template => !template.used);
   }
-  await Promise.all(members.map(async memberDoc => {
-    const guild = discordClient.guilds.cache.get(memberDoc.guildId) || await discordClient.guilds.fetch(memberDoc.guildId);
-    const member = guild!.members.cache.get(memberDoc.id!) || await guild!.members.fetch(memberDoc.id!);
-    let username = member!.user.username;
-    const randomTemplate = unusedTemplates[Math.floor(Math.random() * unusedTemplates.length)];
-    let renderedTemplate = randomTemplate.template.replace(/{{name}}/g, username);
-    if (renderedTemplate.length > 32 && username.indexOf(" ") !== -1) {
-      username = username.substr(0, username.indexOf(" "));
-      renderedTemplate = randomTemplate.replace(/{{name}}/g, username);
+  for (const memberDoc of members) {
+    try {
+      const guild = discordClient.guilds.cache.get(memberDoc.guildId) || await discordClient.guilds.fetch(memberDoc.guildId);
+      const member = guild!.members.cache.get(memberDoc.id!) || await guild!.members.fetch(memberDoc.id!);
+      let username = member!.user.username;
+      const randomIndex = Math.floor(Math.random() * unusedTemplates.length);
+      const randomTemplate = unusedTemplates[randomIndex];
+      let renderedTemplate = randomTemplate.template.replace(/{{name}}/g, username);
+      if (renderedTemplate.length > 32 && username.indexOf(" ") !== -1) {
+        username = username.substr(0, username.indexOf(" "));
+        renderedTemplate = randomTemplate.template.replace(/{{name}}/g, username);
+      }
+      while (renderedTemplate.length > 32) {
+        username = username.slice(0, username.length - 1);
+        renderedTemplate = randomTemplate.template.replace(/{{name}}/g, username);
+      }
+      await member?.setNickname(renderedTemplate);
+      randomTemplate.used = true;
+      await sloganTemplates!.items.upsert(randomTemplate);
+      unusedTemplates.splice(randomIndex, 1);
+    } catch (err) {
+      console.log(`Error while changing a nickname for member ID ${memberDoc.id} of guild ${memberDoc.guildId}: ${err.stack || err.message || err.toString()}`);
     }
-    while (renderedTemplate.length > 32) {
-      username = username.slice(0, username.length - 1);
-      renderedTemplate = randomTemplate.template.replace(/{{name}}/g, username);
-    }
-    await member?.setNickname(renderedTemplate);
-    randomTemplate.used = true;
-    await sloganTemplates!.items.upsert(randomTemplate);
-  }));
+  }
   console.log("Member names have been changed :)");
 }
