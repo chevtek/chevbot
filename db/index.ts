@@ -6,7 +6,7 @@ import wordSchema from "./models/Word";
 
 import config from "../config";
 
-const { MONGODB_USER, MONGODB_PASS } = config;
+const { MONGODB_CONNECTION_STRING } = config;
 
 interface Models {
   SloganmeTemplate?: any,
@@ -27,14 +27,12 @@ export async function initializeDb () {
       models.Word = mongoose.model("Word", wordSchema);
       resolve();
     });
-    mongoose.connect("mongodb://chevtek.io/chevbot_db", {
+    
+    mongoose.connect(MONGODB_CONNECTION_STRING, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
       useFindAndModify: false,
-      useCreateIndex: true,
-      authSource: "admin",
-      user: MONGODB_USER,
-      pass: MONGODB_PASS
+      useCreateIndex: true
     });
   });
 }
