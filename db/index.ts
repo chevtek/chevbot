@@ -1,42 +1,42 @@
-import { CosmosClient, Container } from "@azure/cosmos";
+import mongoose from "mongoose";
+import sloganmeTemplateSchema from "./models/SloganmeTemplate";
+import sloganmeMemberSchema from "./models/SloganmeMember";
+import eventSchema from "./models/Event";
+import wordSchema from "./models/Word";
+
 import config from "../config";
 
-const {
-  COSMOS_DATABASE_ID,
-  COSMOS_PRIMARY_KEY,
-  COSMOS_URI
-} = config;
+const { MONGODB_USER, MONGODB_PASS } = config;
 
-const client = new CosmosClient({
-  endpoint: COSMOS_URI,
-  key: COSMOS_PRIMARY_KEY
-});
-
-interface containers {
-  sloganMembers?: Container,
-  sloganTemplates?: Container,
-  events?: Container
+interface Models {
+  SloganmeTemplate?: any,
+  SloganmeMember?: any,
+  Event?: any,
+  Word?: any
 }
 
-let containers: containers = {};
+const models: Models = {};
 
 export async function initializeDb () {
-  const { database } = await client.databases.createIfNotExists({ id: COSMOS_DATABASE_ID });
-  const { container: sloganMembers } = await database.containers.createIfNotExists(
-    { id: "slogan-members" },
-    { offerThroughput: 400 }
-  );
-  containers.sloganMembers = sloganMembers;
-  const { container: sloganTemplates } = await database.containers.createIfNotExists(
-    { id: "slogan-templates" },
-    { offerThroughput: 400 }
-  );
-  containers.sloganTemplates = sloganTemplates;
-  const { container: events } = await database.containers.createIfNotExists(
-    { id: "events" },
-    { offerThroughput: 400 }
-  );
-  containers.events = events;
+  await new Promise((resolve, reject) => {
+    mongoose.connection.on("error", console.log);
+    mongoose.connection.once("open", () => {
+      models.SloganmeTemplate = mongoose.model("SloganmeTemplate", sloganmeTemplateSchema);
+      models.SloganmeMember = mongoose.model("SloganmeMember", sloganmeMemberSchema);
+      models.Event = mongoose.model("Event", eventSchema);
+      models.Word = mongoose.model("Word", wordSchema);
+      resolve();
+    });
+    mongoose.connect("mongodb://chevtek.io/chevbot_db", {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      useFindAndModify: false,
+      useCreateIndex: true,
+      authSource: "admin",
+      user: MONGODB_USER,
+      pass: MONGODB_PASS
+    });
+  });
 }
 
-export default containers;
+export default models;

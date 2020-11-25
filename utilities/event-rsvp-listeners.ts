@@ -10,8 +10,7 @@ export default async function (event?) {
     setupListeners(event);
     return;
   }
-  const { events } = db;
-  const { resources: eventEntries } = await events!.items.readAll().fetchAll()!;
+  const eventEntries = await db.Event.find();
   await Promise.all(eventEntries.map(setupListeners));
 
   async function setupListeners(event) {
@@ -25,21 +24,11 @@ export default async function (event?) {
       try {
         if (!["MESSAGE_REACTION_ADD", "MESSAGE_REACTION_REMOVE", "MESSAGE_DELETE"].includes(packet.t)) return;
 
-        const {
-          t: type,
-          d: {
-            user_id: userId,
-            message_id: messageId,
-            // channel_id: channelId,
-            guild_id: guildId,
-            emoji
-          }
-        } = packet;
-
-        const guild = discordClient.guilds.cache.get(guildId) || await discordClient.guilds.fetch(guildId);
-        const member = guild.members.cache.get(userId) || await guild.members.fetch(userId);
-        switch (type) {
-          case "MESSAGE_REACTION_ADD":
+        const actions = {
+          "MESSAGE_REACTION_ADD": async () => {
+            const { guild_id: guildId, user_id: userId, emoji, message_id: messageId } = packet.d;
+            const guild = discordClient.guilds.cache.get(guildId) || await discordClient.guilds.fetch(guildId);
+            const member = guild.members.cache.get(userId) || await guild.members.fetch(userId);
             if ( messageId !== eventMessage.id || userId === discordClient.user!.id) return;
             if (![yesEmoji, maybeEmoji].includes(emoji.id)) {
               await eventMessage.reactions.cache.get(emoji.id || emoji.name)!.remove();
@@ -49,8 +38,11 @@ export default async function (event?) {
               .filter(r => r.emoji.id !== emoji.id && r.emoji.name !== emoji.name)
               .map(async r => r.users.remove(userId));
             await member.roles.add(eventRole);
-            return;
-          case "MESSAGE_REACTION_REMOVE":
+          },
+          "MESSAGE_REACTION_REMOVE": async () => {
+            const { guild_id: guildId, user_id: userId, emoji, message_id: messageId } = packet.d;
+            const guild = discordClient.guilds.cache.get(guildId) || await discordClient.guilds.fetch(guildId);
+            const member = guild.members.cache.get(userId) || await guild.members.fetch(userId);
             if (![yesEmoji, maybeEmoji].includes(emoji.id)
               || messageId !== eventMessage.id
               || userId === discordClient.user!.id) return;
@@ -60,14 +52,17 @@ export default async function (event?) {
               return r.users.cache.some(u => u.id === userId);
             }, false)) return;
             await member!.roles.remove(eventRole);
-            return;
-          case "MESSAGE_DELETE":
+          },
+          "MESSAGE_DELETE": async () => {
+            const { id: messageId } = packet.d;
             if (messageId !== eventMessage.id) return;
             discordClient.removeListener("raw", eventHandler);
             await eventRole.delete();
-            await events!.item(event!.id, "/_partitionKey").delete();
-            return;
-        }
+            await db.Event.findByIdAndDelete(event.id);
+          }
+        };
+
+        await actions[packet.t]();
       } catch (err) {
         console.log(err);
       }

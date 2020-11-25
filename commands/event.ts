@@ -1,6 +1,5 @@
 import moment from "moment-timezone";
 import { Message, MessageEmbed } from "discord.js";
-import discordClient from "../discord-client";
 import { initEventRsvp } from "../utilities";
 import db from "../db";
 
@@ -43,7 +42,7 @@ const yesEmoji = "773708749051396136";
 const maybeEmoji = "773708770823635014";
 
 export async function handler ({ discord, title, date, description, notify, image, timeZone }) {
-  const { events } = db;
+  const { Event } = db;
 
   const message = discord.message as Message;
 
@@ -89,7 +88,7 @@ export async function handler ({ discord, title, date, description, notify, imag
   await eventMessage.react(yesEmoji);
   await eventMessage.react(maybeEmoji);
 
-  const { resource: event } = await events!.items.upsert({
+  const event = new Event({
     title,
     date,
     description,
@@ -97,11 +96,10 @@ export async function handler ({ discord, title, date, description, notify, imag
     messageId: eventMessage.id,
     channelId: eventMessage.channel.id,
     guildId: message.guild!.id,
-    roleId: eventRole.id,
-    _partitionKey: "/_partitionKey"
+    roleId: eventRole.id
   });
 
+  await event.save();
   await message.delete();
-
   await initEventRsvp(event);
 }

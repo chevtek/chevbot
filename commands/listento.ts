@@ -8,8 +8,8 @@ export async function handler ({ discord, title }) {
   const message = discord.message as Message;
   title = title.join(" ");
 
-  const textChannel = message.guild!.channels.cache.get("752945543092895865");
-  const voiceChannel = message.guild!.channels.cache.get("709780789218508821");
+  const textChannel = message.guild!.channels.cache.get("778316339315474442");
+  const voiceChannel = message.guild!.channels.cache.get("778316393774579732");
 
   await textChannel!.setName(title.replace(/(&|\/)/g, (match, char) => {
     switch (char) {
