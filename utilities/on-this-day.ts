@@ -11,9 +11,11 @@ export default async function () {
   const event = events[Math.floor(Math.random() * events.length)];
   const birth = births[Math.floor(Math.random() * births.length)];
   const death = deaths[Math.floor(Math.random() * deaths.length)];
-  event.markdown = event.html.replace(/<a href="([^"]+)"[^>]+>([^<]+)<\/a>/g, (match, href, text) => `[${text}](${href})`);
-  birth.markdown = birth.html.replace(/<a href="([^"]+)"[^>]+>([^<]+)<\/a>/g, (match, href, text) => `[${text}](${href})`);
-  death.markdown = death.html.replace(/<a href="([^"]+)"[^>]+>([^<]+)<\/a>/g, (match, href, text) => `[${text}](${href})`);
+  const formatTags = html => html
+    .replace(/<a href="([^"]+)"[^>]+>([^<]+)<\/a>/g, (match, href, text) => `[${text}](${href})`)
+    .replace(/<i>([^<]+)<\/i>/g, (match, text) => `_${text}_`)
+    .replace(/<b>([^<]+)<\/b>/g, (match, text) => `**${text}**`);
+  [event, birth, death].forEach(item => item.markdown = formatTags(item.html));
   const embed = new MessageEmbed()
     .setTitle(`On this day in history!`)
     .setThumbnail(discordClient.user!.avatarURL({ format: "png" })!)
