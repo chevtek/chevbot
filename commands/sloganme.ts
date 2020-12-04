@@ -30,6 +30,11 @@ export const builder = {
     default: false,
     hidden: true
   },
+  "reset-used": {
+    type: "boolean",
+    default: false,
+    hidden: true
+  },
   "trigger": {
     type: "boolean",
     default: false,
@@ -37,7 +42,7 @@ export const builder = {
   }
 };
 
-export async function handler({ discord, add, remove, list, count, trigger, addWord, delWord }) {
+export async function handler({ discord, add, remove, list, count, trigger, addWord, delWord, resetUsed }) {
   const message = discord.message as Message;
   const { SloganmeMember, SloganmeTemplate, Word } = db;
   if (add) {
@@ -97,6 +102,11 @@ export async function handler({ discord, add, remove, list, count, trigger, addW
   if (remove) {
     await SloganmeTemplate.findByIdAndDelete(remove);
     await message.reply("Slogan deleted.");
+    return;
+  }
+  if (resetUsed) {
+    await SloganmeTemplate.updateMany({}, { $set: { used: false } });
+    await message.reply("All slogan templates have been marked unused.");
     return;
   }
   if (trigger) {
