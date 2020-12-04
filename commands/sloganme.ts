@@ -84,8 +84,9 @@ export async function handler({ discord, add, remove, list, count, trigger, addW
     return;
   }
   if (count) {
-    const existingTemplates = await SloganmeTemplate.countDocuments();
-    await message.reply(`There are ${existingTemplates} slogan templates in the database.`);
+    const existingTemplates = await SloganmeTemplate.find();
+    const unusedTemplates = existingTemplates.filter(template => !template.used).length;
+    await message.reply(`There are ${unusedTemplates} unused templates out of ${existingTemplates.length} total.`);
     return;
   }
   if (list) {

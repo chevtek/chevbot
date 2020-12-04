@@ -18,22 +18,18 @@ interface Models {
 const models: Models = {};
 
 export async function initializeDb () {
-  await new Promise((resolve, reject) => {
-    mongoose.connection.on("error", console.log);
-    mongoose.connection.once("open", () => {
-      models.SloganmeTemplate = mongoose.model("SloganmeTemplate", sloganmeTemplateSchema);
-      models.SloganmeMember = mongoose.model("SloganmeMember", sloganmeMemberSchema);
-      models.Event = mongoose.model("Event", eventSchema);
-      models.Word = mongoose.model("Word", wordSchema);
-      resolve();
-    });
-    
-    mongoose.connect(MONGODB_CONNECTION_STRING, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      useFindAndModify: false,
-      useCreateIndex: true
-    });
+  mongoose.connection.on("error", console.log);
+  mongoose.connection.once("open", () => {
+    models.SloganmeTemplate = mongoose.model("SloganmeTemplate", sloganmeTemplateSchema);
+    models.SloganmeMember = mongoose.model("SloganmeMember", sloganmeMemberSchema);
+    models.Event = mongoose.model("Event", eventSchema);
+    models.Word = mongoose.model("Word", wordSchema);
+  });
+  await mongoose.connect(MONGODB_CONNECTION_STRING, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false,
+    useCreateIndex: true
   });
 }
 
