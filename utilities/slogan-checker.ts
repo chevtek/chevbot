@@ -5,6 +5,7 @@ export default async function () {
   const { SloganmeMember, SloganmeTemplate } = db;
   const members = await SloganmeMember.find();
   let templates = await SloganmeTemplate.find({ used: false }); 
+  shuffle(templates);
   console.log(`${templates.length} unused templates found.`);
   if (templates.length < members.length) {
     console.log(`There are ${members.length} sloganme members but only ${templates.length} unused templates. Resetting template usage...`);
@@ -17,8 +18,7 @@ export default async function () {
       const guild = discordClient.guilds.cache.get(memberDoc.guildId) || await discordClient.guilds.fetch(memberDoc.guildId);
       const member = guild!.members.cache.get(memberDoc.userId) || await guild!.members.fetch(memberDoc.userId);
       let username = member!.user.username;
-      const randomIndex = Math.floor(Math.random() * templates.length);
-      const randomTemplate = templates[randomIndex];
+      const randomTemplate = templates.pop();
       let renderedTemplate = randomTemplate.template.replace(/{{name}}/g, username);
       const formatTemplate = async () => {
         if (renderedTemplate.length <= 32) return;
@@ -53,10 +53,28 @@ export default async function () {
       await member?.setNickname(renderedTemplate);
       randomTemplate.used = true;
       await randomTemplate.save();
-      templates.splice(randomIndex, 1);
     } catch (err) {
       console.log(`Error while changing a nickname for member ID ${memberDoc.id} of guild ${memberDoc.guildId}: ${err.stack || err.message || err.toString()}`);
     }
   }
   console.log("Member names have been changed :)");
+}
+
+function shuffle(array) {
+  var currentIndex = array.length, temporaryValue, randomIndex;
+
+  // While there remain elements to shuffle...
+  while (0 !== currentIndex) {
+
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+
+    // And swap it with the current element.
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+
+  return array;
 }
