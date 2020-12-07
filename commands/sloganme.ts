@@ -46,7 +46,7 @@ export async function handler({ discord, add, remove, list, count, trigger, addW
   const message = discord.message as Message;
   const { SloganmeMember, SloganmeTemplate, Word } = db;
   if (add) {
-    const newTemplate = add as string;
+    const newTemplate = (add as string).trim();
     if (newTemplate.length > 32) {
       await message.reply(`Slogans cannot be more than 32 characters long. Yours was ${newTemplate.length} characters long.`);
       return;
