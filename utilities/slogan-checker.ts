@@ -18,14 +18,18 @@ export default async function () {
       const guild = discordClient.guilds.cache.get(memberDoc.guildId) || await discordClient.guilds.fetch(memberDoc.guildId);
       const member = guild!.members.cache.get(memberDoc.userId) || await guild!.members.fetch(memberDoc.userId);
       let username = member!.user.username;
+      const renderTemplate = () => randomTemplate.template
+        .replace(/{{name}}/g, username.toLowerCase())
+        .replace(/{{NAME}}/g, username.toUpperCase())
+        .replace(/{{Name}}/g, username.split(" ").map(word => `${word[0].toUpperCase()}${word.slice(1).toLowerCase()}`).join(" "));
       const randomTemplate = templates.pop();
-      let renderedTemplate = randomTemplate.template.replace(/{{name}}/g, username);
+      let renderedTemplate = renderTemplate();
       const formatTemplate = async () => {
         if (renderedTemplate.length <= 32) return;
         while (username.length > 3) {
           const word = await db.Word.findOne({ text: username.toLowerCase() });
           if (word) {
-            renderedTemplate = randomTemplate.template.replace(/{{name}}/g, username);
+            renderedTemplate = renderTemplate();
             if (renderedTemplate.length <= 32) return;
           }
           username = username.slice(0, username.length - 1);
@@ -35,18 +39,18 @@ export default async function () {
         username = member!.user.username;
         if (username.indexOf(" ") !== -1) {
           username = username.substr(0, username.indexOf(" "));
-          renderedTemplate = randomTemplate.template.replace(/{{name}}/g, username);
+          renderedTemplate = renderTemplate();
           if (renderedTemplate.length <= 32) return renderedTemplate;
         }
         const suffixMatch = username.match(/\d+$/);
         if (suffixMatch !== null) {
           username = username.slice(0, suffixMatch.index);
-          renderedTemplate = randomTemplate.template.replace(/{{name}}/g, username);
+          renderedTemplate = renderTemplate();
           if (renderedTemplate.length <= 32) return;
         }
         while (renderedTemplate.length > 32) {
           username = username.slice(0, username.length - 1);
-          renderedTemplate = randomTemplate.template.replace(/{{name}}/g, username);
+          renderedTemplate = renderTemplate();
         }
       };
       await formatTemplate();

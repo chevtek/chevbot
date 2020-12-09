@@ -51,8 +51,8 @@ export async function handler({ discord, add, remove, list, count, trigger, addW
       await message.reply(`Slogans cannot be more than 32 characters long. Yours was ${newTemplate.length} characters long.`);
       return;
     }
-    if (!newTemplate.includes("{{name}}")) {
-      await message.reply("Slogan template must include at least one instance of `{{name}}`.");
+    if (!newTemplate.toLowerCase().includes("{{name}}")) {
+      await message.reply("Slogan template must include at least one instance of `{{name}}`, `{{Name}}`, or `{{NAME}}`.");
       return;
     }
     const existingTemplates = await SloganmeTemplate.where({ template: newTemplate }).countDocuments();
