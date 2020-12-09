@@ -4,7 +4,6 @@ import onThisDay from "./on-this-day";
 // import eventReminders from "./event-reminders";
 
 export default async function () {
-  await sloganChecker();
   setInterval(async () => {
     try {
 
