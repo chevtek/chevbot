@@ -1,10 +1,14 @@
 enum ConfigProperties { 
+  CHEVCAST_GUILD_ID,
+  CAMPAIGN_INDEX_CHANNEL_ID,
   COMMAND_PREFIX,
   DISCORD_BOT_TOKEN,
   DISCORD_CLIENT_ID,
   DISCORD_CLIENT_SECRET,
+  MAYBE_EMOJI_ID,
   MONGODB_CONNECTION_STRING,
-  PORT
+  PORT,
+  YES_EMOJI_ID
 };
 
 export default Object.keys(ConfigProperties).reduce((config, key) => {

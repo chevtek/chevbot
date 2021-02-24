@@ -1,9 +1,12 @@
 import { TextChannel } from "discord.js";
 import db from "../db";
+import config from "../config";
 import discordClient from "../discord-client";
 
-const yesEmoji = "773708749051396136";
-const maybeEmoji = "773708770823635014";
+const {
+  YES_EMOJI_ID,
+  MAYBE_EMOJI_ID
+} = config;
 
 export default async function (event?) {
   if (event) {
@@ -30,7 +33,7 @@ export default async function (event?) {
             const guild = discordClient.guilds.cache.get(guildId) || await discordClient.guilds.fetch(guildId);
             const member = guild.members.cache.get(userId) || await guild.members.fetch(userId);
             if ( messageId !== eventMessage.id || userId === discordClient.user!.id) return;
-            if (![yesEmoji, maybeEmoji].includes(emoji.id)) {
+            if (![YES_EMOJI_ID, MAYBE_EMOJI_ID].includes(emoji.id)) {
               await eventMessage.reactions.cache.get(emoji.id || emoji.name)!.remove();
               return;
             }
@@ -43,7 +46,7 @@ export default async function (event?) {
             const { guild_id: guildId, user_id: userId, emoji, message_id: messageId } = packet.d;
             const guild = discordClient.guilds.cache.get(guildId) || await discordClient.guilds.fetch(guildId);
             const member = guild.members.cache.get(userId) || await guild.members.fetch(userId);
-            if (![yesEmoji, maybeEmoji].includes(emoji.id)
+            if (![YES_EMOJI_ID, MAYBE_EMOJI_ID].includes(emoji.id)
               || messageId !== eventMessage.id
               || userId === discordClient.user!.id) return;
             if (eventMessage.reactions.cache.reduce((hasUser, r) => {
