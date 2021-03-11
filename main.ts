@@ -12,7 +12,7 @@ import discordClient from "./discord-client";
 import config from "./config";
 import { initializeDb } from "./db";
 // import { handler as listChannels } from "./commands/channels";
-import { cronJobs, initEventRsvp, campaignIndex } from "./utilities";
+import { cronJobs, initEventRsvp } from "./utilities";
 
 const readDir = util.promisify(fs.readdir);
 
@@ -33,7 +33,6 @@ const {
       console.log(`Chevbot online [${moment().tz("America/Denver")}]`);
       await initEventRsvp();
       await cronJobs();
-      await campaignIndex();
     } catch (err) {
       console.log(err);
     }
