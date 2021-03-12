@@ -19,7 +19,7 @@ export default async function (member: GuildMember): Promise<Snowflake> {
       },
       {
         id: member.id,
-        allow: ["SEND_MESSAGES"]
+        allow: ["SEND_MESSAGES", "MANAGE_CHANNELS", "MANAGE_MESSAGES", "MANAGE_WEBHOOKS", "MANAGE_ROLES"]
       }
     ]
   });
