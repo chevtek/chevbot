@@ -68,7 +68,12 @@ const {
       ctx.fillRect(0, 0, width, height);
       ctx.font = "28px Arial";
       ctx.fillStyle = "#ffffff";
-      ctx.fillText("Welcome to the server,", canvas.width / 2.5, canvas.height / 2.5);
+      if (member.user.bot) {
+        ctx.fillText("Welc-- wait... another bot?", canvas.width / 2.5, canvas.height / 3.55);
+        ctx.fillText("*Sigh*. Welcome I guess,", canvas.width / 2.5, canvas.height / 2.5);
+      } else {
+        ctx.fillText("Welcome to the server,", canvas.width / 2.5, canvas.height / 2.5);
+      }
       let fontSize = 70;
       let text = `${member.displayName}!`;
       let textFits = false;
@@ -82,7 +87,7 @@ const {
           textFits = ctx.measureText(text).width < canvas.width - 300;
         }
       }
-      ctx.fillStyle = "#00ff00";
+      ctx.fillStyle = member.user.bot ? "#ff0000" : "#00ff00";
       ctx.fillText(text, canvas.width / 2.5, canvas.height / 1.45);
       ctx.beginPath();
       ctx.arc(125, 125, 100, 0, Math.PI * 2, true);
@@ -100,6 +105,9 @@ const {
     }
   });
 
+  discordClient.on("channelCreate", channel => {
+    // Check for parent.
+  });
 
   discordClient.on("message", message => {
     const { content, author } = message;
