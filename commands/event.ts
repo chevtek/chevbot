@@ -1,6 +1,6 @@
 import moment from "moment-timezone";
 import { Message, MessageEmbed } from "discord.js";
-import { initEventRsvp } from "../utilities";
+import { initEventRsvp } from "../functions";
 import db from "../db";
 
 export const command = "event <title> <date> [description]";

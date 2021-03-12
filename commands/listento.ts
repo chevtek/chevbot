@@ -2,7 +2,7 @@ import { Message } from "discord.js";
 
 export const command = ["listento <title..>", "lt"];
 
-export const description = "Modifies the listen text and voice channel names.";
+export const description = false;
 
 export async function handler ({ discord, title }) {
   const message = discord.message as Message;

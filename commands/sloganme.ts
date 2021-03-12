@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 import db from "../db";
-import sloganChecker from "../utilities/slogan-checker";
+import sloganChecker from "../functions/slogan-checker";
 
 export const command = "sloganme";
 

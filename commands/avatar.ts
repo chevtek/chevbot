@@ -1,20 +1,21 @@
 import { MessageEmbed, Message } from "discord.js";
+
 export const command = "avatar [user]";
 
 export const description = "Display a user's avatar in the channel.";
 
 export async function handler ({ discord, user }) {
-  const { message } = discord;
+  const message = discord.message as Message;
   if (message.channel.type === "dm") {
-    message.reply("This command can only be run from a server.");
+    return message.reply("This command can only be run from a server.");
   }
-  let member = message.member;
+  let member = message.member!;
   if (user) {
     const memberId = user.match(/^<@!?(\d+)>$/)?.[1];
     if (!memberId) return message.reply("Invalid user supplied.");
-    member = message.guild.members.cache.get(memberId);
+    member = message.guild!.members.cache.get(memberId)!;
   }
-  message.channel.send(new MessageEmbed({
+  await message.channel.send(new MessageEmbed({
     color: "#00ff00",
     title: `${member.displayName}'s Avatar`,
     image: {
