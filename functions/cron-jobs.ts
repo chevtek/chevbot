@@ -9,10 +9,19 @@ export default async function () {
     try {
 
       const now = moment().tz("America/Denver");
+
+      // 6am MST
       if (now.hour() === 6 && now.minute() === 0) {
         await Promise.all([
           onThisDay(),
           sloganChecker(),
+          xboxAvailability()
+        ]);
+      }
+
+      // 6pm MST
+      if (now.hour() === 18 && now.minute() === 0) {
+        await Promise.all([
           xboxAvailability()
         ]);
       }

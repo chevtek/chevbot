@@ -104,5 +104,9 @@ export default async function () {
       **Target:** ${availability.target ? "[IN STOCK!](https://www.target.com/p/xbox-series-x-console/-/A-80790841)" : "Still sold out."}
       **Walmart:** ${availability.walmart ? "[IN STOCK!](https://www.walmart.com/ip/Xbox-Series-X/443574645)" : "Still sold out."}
     `);
-  channel.send(msg);
+  await channel.send(msg);
+
+  if (errors.length > 0) {
+    await channel.send(`Errors:\n\n${errors.join("\n")}`);
+  }
 }
